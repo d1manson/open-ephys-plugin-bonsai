@@ -23,10 +23,12 @@
 
 #include "BonsaiDataThreadPluginEditor.h"
 
-DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode)
-	: GenericEditor(parentNode)
-{
+namespace Bonsai {
+	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode)
+		: GenericEditor(parentNode)
+	{
 
-	desiredWidth = 150;
+		desiredWidth = 150;
 
+	}
 }

@@ -26,15 +26,18 @@
 
 #include <EditorHeaders.h>
 
-class DataThreadPluginEditor : public GenericEditor
-{
-public:
-	/** The class constructor, used to initialize any members. */
-	DataThreadPluginEditor(GenericProcessor* parentNode);
+namespace Bonsai {
 
-	/** The class destructor, used to deallocate memory */
-	~DataThreadPluginEditor() { }
+	class DataThreadPluginEditor : public GenericEditor
+	{
+	public:
+		/** The class constructor, used to initialize any members. */
+		DataThreadPluginEditor(GenericProcessor* parentNode);
 
-};
+		/** The class destructor, used to deallocate memory */
+		~DataThreadPluginEditor() { }
 
+	};
+
+}
 #endif

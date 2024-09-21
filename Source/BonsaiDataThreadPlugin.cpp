@@ -25,73 +25,101 @@
 
 #include "BonsaiDataThreadPluginEditor.h"
 
-DataThreadPlugin::DataThreadPlugin(SourceNode* sn) : DataThread(sn)
-{
+#include <ProcessorHeaders.h>
 
-}
+namespace Bonsai {
 
-
-DataThreadPlugin::~DataThreadPlugin()
-{
-
-}
-
-bool DataThreadPlugin::updateBuffer()
-{
-    return true;
-}
-
-bool DataThreadPlugin::foundInputSource()
-{
-    return true;
-}
-
-bool DataThreadPlugin::startAcquisition()
-{
-    return true;
-}
-
-bool DataThreadPlugin::stopAcquisition()
-{
-    return true;
-}
+    constexpr size_t DEFAULT_OSC_PORT = 27020;
+    constexpr char DEFAULT_OSC_ADDRESS[] = "/red";
 
 
-void DataThreadPlugin::updateSettings(OwnedArray<ContinuousChannel>* continuousChannels,
-    OwnedArray<EventChannel>* eventChannels,
-    OwnedArray<SpikeChannel>* spikeChannels,
-    OwnedArray<DataStream>* sourceStreams,
-    OwnedArray<DeviceInfo>* devices,
-    OwnedArray<ConfigurationObject>* configurationObjects)
-{
+    DataThreadPlugin::DataThreadPlugin(SourceNode* sn) : DataThread(sn)
+    {
+        /*addIntParameter(Parameter::GLOBAL_SCOPE, "Port", "Tracking source OSC port", DEF_PORT, 1024, 49151);
+        addStringParameter(Parameter::GLOBAL_SCOPE, "Address", "Tracking source OSC address", DEF_ADDRESS);*/
+        server = std::make_unique<OSCServer>(getOSCPort(), getOSCAddress());
+        if (server->isBound()) {
+            server->startThread();
+        }
+    }
 
 
-}
+    DataThreadPlugin::~DataThreadPlugin()
+    {
+       
+    }
+
+    int DataThreadPlugin::getOSCPort() const
+    {
+       // todo: provide way to configure this in the interface, see https://github.com/open-ephys-plugins/osc-io/blob/main/Source/OSCEvents.cpp
+       return DEFAULT_OSC_PORT; 
+    }
+
+    String DataThreadPlugin::getOSCAddress() const
+    {
+        return DEFAULT_OSC_ADDRESS;
+    }
+
+    bool DataThreadPlugin::updateBuffer()
+    {
+        // todo: call theServer.FlushBuffer(...)
+        return true;
+    }
+
+    bool DataThreadPlugin::foundInputSource()
+    {
+        return true;
+    }
+
+    bool DataThreadPlugin::startAcquisition()
+    {
+        return true;
+    }
+
+    bool DataThreadPlugin::stopAcquisition()
+    {
+        return true;
+    }
 
 
-void DataThreadPlugin::resizeBuffers()
-{
-
-}
-
-
-std::unique_ptr<GenericEditor> DataThreadPlugin::createEditor(SourceNode* sn)
-{
-    
-    std::unique_ptr<DataThreadPluginEditor> editor = std::make_unique<DataThreadPluginEditor>(sn);
-
-    return editor;
-
-}
-
-void DataThreadPlugin::handleBroadcastMessage(String msg)
-{
+    void DataThreadPlugin::updateSettings(OwnedArray<ContinuousChannel>* continuousChannels,
+        OwnedArray<EventChannel>* eventChannels,
+        OwnedArray<SpikeChannel>* spikeChannels,
+        OwnedArray<DataStream>* sourceStreams,
+        OwnedArray<DeviceInfo>* devices,
+        OwnedArray<ConfigurationObject>* configurationObjects)
+    {
 
 
-}
+    }
 
-String DataThreadPlugin::handleConfigMessage(String msg)
-{
 
-    return "";
+    void DataThreadPlugin::resizeBuffers()
+    {
+
+    }
+
+
+    std::unique_ptr<GenericEditor> DataThreadPlugin::createEditor(SourceNode* sn)
+    {
+
+        std::unique_ptr<DataThreadPluginEditor> editor = std::make_unique<DataThreadPluginEditor>(sn);
+
+        return editor;
+
+    }
+
+    void DataThreadPlugin::handleBroadcastMessage(String msg)
+    {
+
+
+    }
+
+    String DataThreadPlugin::handleConfigMessage(String msg)
+    {
+
+        return "";
+    }
+
+
 }
