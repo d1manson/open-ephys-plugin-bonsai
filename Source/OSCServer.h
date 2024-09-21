@@ -77,7 +77,7 @@ namespace Bonsai {
 		std::vector<std::array<int16_t, 4>> buffer;
 		std::mutex bufferMutex;
 
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Bonsai);
+		//JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Bonsai);
 	};
 
 }

@@ -88,8 +88,8 @@ namespace Bonsai {
     private:
         std::unique_ptr<OSCServer> server;
 
-        int DataThreadPlugin::getOSCPort() const;
-        String DataThreadPlugin::getOSCAddress() const;
+        int getOSCPort() const;
+        String getOSCAddress() const;
     };
 
 }

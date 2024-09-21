@@ -41,7 +41,7 @@ namespace Bonsai {
 
         try {
 
-            if (!String(receivedMessage.AddressPattern()).equalsIgnoreCase(getOSCAddress())) {
+            if (!String(receivedMessage.AddressPattern()).equalsIgnoreCase(address)) {
                 LOGC("Ignoring message with address: ", receivedMessage.AddressPattern());
                 return;
             }
