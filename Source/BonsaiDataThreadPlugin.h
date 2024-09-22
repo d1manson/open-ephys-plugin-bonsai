@@ -91,6 +91,7 @@ namespace Bonsai {
 
         int getOSCPort() const;
         String getOSCAddress() const;
+        SourceNode* sourceNode;
     };
 
 }

@@ -37,6 +37,8 @@ namespace Bonsai {
 		/** The class destructor, used to deallocate memory */
 		~DataThreadPluginEditor() { }
 
+
+
 	};
 
 }

@@ -27,15 +27,17 @@
 
 #include <ProcessorHeaders.h>
 
+
 namespace Bonsai {
 
     constexpr size_t DEFAULT_OSC_PORT = 27020;
     constexpr char DEFAULT_OSC_ADDRESS[] = "/bonsai";
 
 
-    DataThreadPlugin::DataThreadPlugin(SourceNode* sn) : DataThread(sn)
+    DataThreadPlugin::DataThreadPlugin(SourceNode* sn) : DataThread(sn), sourceNode(sn)
     {
-        
+        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Port", "Bonsai OSC port", DEFAULT_OSC_PORT, 1024, 49151);
+        sourceNode->addStringParameter(Parameter::GLOBAL_SCOPE, "Address", "Bonsai source OSC address", DEFAULT_OSC_ADDRESS);
     }
 
 
@@ -47,13 +49,12 @@ namespace Bonsai {
 
     int DataThreadPlugin::getOSCPort() const
     {
-       // todo: provide way to configure this in the interface, see https://github.com/open-ephys-plugins/osc-io/blob/main/Source/OSCEvents.cpp
-       return DEFAULT_OSC_PORT; 
+        return sourceNode->getParameter("Port")->getValue();
     }
 
     String DataThreadPlugin::getOSCAddress() const
     {
-        return DEFAULT_OSC_ADDRESS;
+        return sourceNode->getParameter("Address")->getValue();
     }
 
     bool DataThreadPlugin::updateBuffer()
@@ -63,7 +64,7 @@ namespace Bonsai {
 
     bool DataThreadPlugin::foundInputSource()
     {
-        return server && server->IsBound();
+        return true;
     }
 
     bool DataThreadPlugin::startAcquisition()
@@ -78,6 +79,9 @@ namespace Bonsai {
         }
         sourceBuffers.getFirst()->clear();
         server = std::make_unique<OSCServer>(getOSCPort(), getOSCAddress(), sourceBuffers.getFirst());
+        if (!server || !server->IsBound()) {
+            return false;
+        }
         startThread(); // will call run() on this class, which in turn calls server->run()
         return true;
     }
@@ -125,7 +129,7 @@ namespace Bonsai {
 
         DataStream* stream = new DataStream({
            "bonsai",
-           "4x int32 values from bonsai over UDP/OSC",
+           "4x float32s values from bonsai over UDP/OSC",
            "bonsai",
            1000.0  // stream sample rate; not sure how this is actually used, the value here was chosen arbitrarily
         });
@@ -136,9 +140,9 @@ namespace Bonsai {
 
         continuousChannels->add(new ContinuousChannel({
             ContinuousChannel::Type::AUX,
-            "CH1",
-            "4 int32s packed into 1D float array",
-            "CH1",
+            "BONS1",
+            "4x float32s packed into 1d array",
+            "BONS1",
             0,  // channel bitvolts scaling, not relevant here
             stream
         }));

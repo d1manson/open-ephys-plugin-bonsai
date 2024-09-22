@@ -27,8 +27,8 @@ namespace Bonsai {
 	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode)
 		: GenericEditor(parentNode)
 	{
-
 		desiredWidth = 150;
-
+		addTextBoxParameterEditor("Address", 10, 75);
+		addTextBoxParameterEditor("Port", 10, 25);
 	}
 }

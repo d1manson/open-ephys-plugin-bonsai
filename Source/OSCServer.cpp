@@ -44,11 +44,11 @@ namespace Bonsai {
 
             osc::ReceivedMessageArgumentStream args = receivedMessage.ArgumentStream();
             
-            int32_t vals[4];
+            float vals[4];
             args >> vals[0] >> vals[1] >> vals[2] >> vals[3];
             nSamples++;
             double timestamp = nSamples; // not especially helpful, but need something
-            dataBuffer->addToBuffer(reinterpret_cast<float*>(vals), &nSamples, &timestamp, 0, 1);
+            dataBuffer->addToBuffer(vals, &nSamples, &timestamp, 0, 1);
             
         } catch (osc::Exception& e) {
             // any parsing errors such as unexpected argument types, or
