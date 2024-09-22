@@ -72,6 +72,11 @@ namespace Bonsai {
             LOGE("OSC Server should not be running yet when calling startAcquisition(), but it is.");
             return false;
         }
+        if (!sourceBuffers.getFirst()) {
+            LOGE("sourceBuffer should be allocated when calling startAcquisition(), but it is.");
+            return false;
+        }
+        sourceBuffers.getFirst()->clear();
         server = std::make_unique<OSCServer>(getOSCPort(), getOSCAddress(), sourceBuffers.getFirst());
         startThread(); // will call run() on this class, which in turn calls server->run()
         return true;
