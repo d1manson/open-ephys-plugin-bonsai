@@ -46,8 +46,10 @@ namespace Bonsai {
             float vals[4];
             args >> vals[0] >> vals[1] >> vals[2] >> vals[3];
             nSamples++;
-            double timestamp = nSamples; // not especially helpful, but need something
-            dataBuffer->addToBuffer(vals, &nSamples, &timestamp, 0, 1);
+            double timestamps[4] = { nSamples, nSamples, nSamples, nSamples }; // not especially helpful, but need something
+            int64 sampleNums[4] = { nSamples * 4 + 0, nSamples * 4 + 1, nSamples * 4 + 2, nSamples * 4 + 3 };
+            uint64 eventCodes[4] = { 0,0,0,0 };
+            dataBuffer->addToBuffer(vals, sampleNums, timestamps, eventCodes, 4, 1);
             
         } catch (osc::Exception& e) {
             // any parsing errors such as unexpected argument types, or

@@ -2,8 +2,8 @@ This is currently unfinished.
 
 # Bonsai Plugin
 
-This runs an OSC UDP Server (using an open ephys DataThread plugin). The Server expects messages with 4 int32 values. It packs the
-binary representation of 4 int32 values into the float32 dataBuffer, which is then visible downstream in Openephys as a continuous data channel.
+This runs an OSC UDP Server (using an open ephys DataThread plugin). The Server expects messages with 4 float32 values. It packs the
+values into the float32 dataBuffer, which is then visible downstream in Openephys as a continuous data channel.
 
 The intention is that the data is coming from Bonsai, with the 4 values corresponding to some kind of x and y values. In order to get acurate timestamps
 you probably want to have a ttl output from your camera directly into the main acquistion board, and then have a customer recorder plugin that can
