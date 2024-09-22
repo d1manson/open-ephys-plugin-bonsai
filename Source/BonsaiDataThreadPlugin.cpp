@@ -30,17 +30,12 @@
 namespace Bonsai {
 
     constexpr size_t DEFAULT_OSC_PORT = 27020;
-    constexpr char DEFAULT_OSC_ADDRESS[] = "/red";
+    constexpr char DEFAULT_OSC_ADDRESS[] = "/bonsai";
 
 
     DataThreadPlugin::DataThreadPlugin(SourceNode* sn) : DataThread(sn)
     {
-        /*addIntParameter(Parameter::GLOBAL_SCOPE, "Port", "Tracking source OSC port", DEF_PORT, 1024, 49151);
-        addStringParameter(Parameter::GLOBAL_SCOPE, "Address", "Tracking source OSC address", DEF_ADDRESS);*/
-        server = std::make_unique<OSCServer>(getOSCPort(), getOSCAddress());
-        if (server->isBound()) {
-            server->startThread();
-        }
+        
     }
 
 
@@ -48,6 +43,7 @@ namespace Bonsai {
     {
        
     }
+
 
     int DataThreadPlugin::getOSCPort() const
     {
@@ -62,22 +58,46 @@ namespace Bonsai {
 
     bool DataThreadPlugin::updateBuffer()
     {
-        // todo: call theServer.FlushBuffer(...)
         return true;
     }
 
     bool DataThreadPlugin::foundInputSource()
     {
-        return true;
+        return server && server->IsBound();
     }
 
     bool DataThreadPlugin::startAcquisition()
     {
+        if (server && server->IsBound()) {
+            LOGE("OSC Server should not be running yet when calling startAcquisition(), but it is.");
+            return false;
+        }
+        server = std::make_unique<OSCServer>(getOSCPort(), getOSCAddress(), sourceBuffers.getFirst());
+        startThread(); // will call run() on this class, which in turn calls server->run()
         return true;
+    }
+
+    void DataThreadPlugin::run()
+    {
+        // this function is called by the base JUCE Thread class, on a dedicated thread
+        if (!server) {
+            LOGE("OSC server not created yet.");
+            return;
+        }
+        server->run();
     }
 
     bool DataThreadPlugin::stopAcquisition()
     {
+        if (!server || !server->IsBound()) {
+            LOGE("OSC Server should be running when calling stopAcquisition(), but it isn't.");
+            return false;
+        }
+        server->stop();
+        if (!stopThread(500)) {
+            return false;
+        }
+        server = nullptr;
         return true;
     }
 
@@ -89,7 +109,34 @@ namespace Bonsai {
         OwnedArray<DeviceInfo>* devices,
         OwnedArray<ConfigurationObject>* configurationObjects)
     {
+        if (server && server->IsBound()) {
+            LOGE("OSC Server should not be running when updating Settings, but it is.");
+            return;
+        }
 
+        sourceStreams->clear();
+        sourceBuffers.clear();
+        continuousChannels->clear();
+
+        DataStream* stream = new DataStream({
+           "bonsai",
+           "4x int16 values from bonsai over UDP/OSC",
+           "bonsai",
+           1000.0  // stream sample rate; not sure how this is actually used, the value here was chosen arbitrarily
+        });
+
+        sourceStreams->add(stream);
+
+        sourceBuffers.add(new DataBuffer(1, 4 * 1024));
+
+        continuousChannels->add(new ContinuousChannel({
+            ContinuousChannel::Type::AUX,
+            "CH1",
+            "4 uint16s packed into 1D float array",
+            "CH1",
+            0,  // channel bitvolts scaling, not relevant here
+            stream
+        }));
 
     }
 

@@ -85,6 +85,7 @@ namespace Bonsai {
         // ** Allows the DataThread plugin to handle a config message while acquisition is not active. */
         String handleConfigMessage(String msg) override;
 
+        void run() override;
     private:
         std::unique_ptr<OSCServer> server;
 

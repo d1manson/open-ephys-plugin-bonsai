@@ -29,53 +29,42 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "oscpack/osc/OscReceivedElements.h"
 #include "oscpack/osc/OscPacketListener.h"
 #include "oscpack/ip/UdpSocket.h"
-#include <mutex>
-#include <vector>
-
+#include <DataThreadHeaders.h>
 
 /*
-	An OSC UDP Server running its own thread. It expects messages with 4 int16 values.
-	Call .flushBuffer() to get the available data and wipe the buffer. This method is
-	thread safe (which is important because the server runs on another thread).
+	An OSC UDP Server that expects messages with 4 int16 values. It writes them into the dataBuffer.
+	Note that DataBuffer is thread-safe, because it's managed via a JUCE AbstractFifo under the hood.
 */
 namespace Bonsai {
 	class OSCServer 
-		: public osc::OscPacketListener, public Thread
+		: public osc::OscPacketListener
 	{
 	public:
 
 		/** Constructor */
-		OSCServer(int port, String address);
+		OSCServer(int port, String address, DataBuffer* dataBuffer);
 
 		/** Destructor*/
 		~OSCServer();
 
-		/** Run thread */
+		/** Blocking method, that should be called on its own thread. */
 		void run();
 
-		/** Stop listening */
 		void stop();
 
-		/** Check if server was bound successfully */
-		bool isBound();
+		DataBuffer* dataBuffer;
 
-		/** Thread-safe copy the data from the buffer and reset the buffer to empty */
-		void FlushBuffer(std::vector<std::array<int16_t, 4>>& dest);
-
+		bool IsBound() { return socket && socket->IsBound(); };
 
 	protected:
 		/** OscPacketListener method*/
 		virtual void ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName&);
 
 	private:
-
 		int port;
 		String address;
-
 		std::unique_ptr<UdpListeningReceiveSocket> socket;
 
-		std::vector<std::array<int16_t, 4>> buffer;
-		std::mutex bufferMutex;
 
 		//JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Bonsai);
 	};
