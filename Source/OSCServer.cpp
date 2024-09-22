@@ -8,8 +8,7 @@ namespace Bonsai {
         LOGC("Creating OSC server - Port:", port, " Address:", address);
 
         try{
-            socket = std::make_unique<UdpListeningReceiveSocket>(
-                IpEndpointName(IpEndpointName::ANY_ADDRESS, port), this);
+            socket = std::make_unique<UdpListeningReceiveSocket>(IpEndpointName("localhost", port), this);
             CoreServices::sendStatusMessage("OSC Server ready!");
             LOGC("OSC Server started!");
         } catch (const std::exception& e) {
