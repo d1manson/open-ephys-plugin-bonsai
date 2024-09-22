@@ -32,8 +32,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <DataThreadHeaders.h>
 
 /*
-	An OSC UDP Server that expects messages with 4 int16 values. It writes them into the dataBuffer.
-	Note that DataBuffer is thread-safe, because it's managed via a JUCE AbstractFifo under the hood.
+	An OSC UDP Server that expects messages with 4 int32 values. It packs the binary representation of 4 int32 values into
+	the float32 dataBuffer. Note that DataBuffer is thread-safe, because it's managed via a JUCE AbstractFifo under the hood.
 */
 namespace Bonsai {
 	class OSCServer 
@@ -64,9 +64,9 @@ namespace Bonsai {
 		int port;
 		String address;
 		std::unique_ptr<UdpListeningReceiveSocket> socket;
+		int64 nSamples;
 
-
-		//JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Bonsai);
+		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OSCServer);
 	};
 
 }

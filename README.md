@@ -1,3 +1,15 @@
+This is currently unfinished.
+
+# Bonsai Plugin
+
+This runs an OSC UDP Server (using an open ephys DataThread plugin). The Server expects messages with 4 int32 values. It packs the
+binary representation of 4 int32 values into the float32 dataBuffer, which is then visible downstream in Openephys as a continuous data channel.
+
+The intention is that the data is coming from Bonsai, with the 4 values corresponding to some kind of x and y values. In order to get acurate timestamps
+you probably want to have a ttl output from your camera directly into the main acquistion board, and then have a customer recorder plugin that can
+match up the pairs of (ttl events, xy continuous data) and record in a sensible format.
+
+
 # Data Thread Plugin Template
 
 This repository contains a template for building **Data Thread** plugins for the [Open Ephys GUI](https://github.com/open-ephys/plugin-GUI). Data Thread plugins typically communicate with an external piece of hardware with an acquisition clock that is not synchronized with the GUI's signal processing callbacks. Examples of commonly used Data Thread plugins include [Neuropixels PXI](https://github.com/open-ephys-plugins/neuropixels-pxi) and the [Rhythm Plugins](https://github.com/open-ephys-plugins/rhythm-plugins).

@@ -3,7 +3,7 @@
 
 namespace Bonsai {
     OSCServer::OSCServer(int port_, String address_, DataBuffer* dataBuffer_) :
-        port(port_), address(address_), dataBuffer(dataBuffer_)
+        port(port_), address(address_), dataBuffer(dataBuffer_), nSamples(0)
     {
         LOGC("Creating OSC server - Port:", port, " Address:", address);
 
@@ -43,13 +43,12 @@ namespace Bonsai {
             }
 
             osc::ReceivedMessageArgumentStream args = receivedMessage.ArgumentStream();
-
-            // TODO: implement this somehow...
-            int v0, v1, v2, v3;
-            args >> v0 >> v1 >> v1 >> v3;
-            /*
-            dataBuffer->addToBuffer(...)
-            */
+            
+            int32_t vals[4];
+            args >> vals[0] >> vals[1] >> vals[2] >> vals[3];
+            nSamples++;
+            double timestamp = nSamples; // not especially helpful, but need something
+            dataBuffer->addToBuffer(reinterpret_cast<float*>(vals), &nSamples, &timestamp, 0, 1);
             
         } catch (osc::Exception& e) {
             // any parsing errors such as unexpected argument types, or
@@ -72,7 +71,11 @@ namespace Bonsai {
             LOGE("Socket not initialised.");
             return;
         }
-       
+        if (nSamples) {
+            const MessageManagerLock mmLock(Thread::getCurrentThread());
+            LOGE("nSamples should be 0 when run() is called, found:", nSamples);
+            return;
+        }
         socket->Run();
     }
 

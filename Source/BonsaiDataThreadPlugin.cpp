@@ -58,7 +58,7 @@ namespace Bonsai {
 
     bool DataThreadPlugin::updateBuffer()
     {
-        return true;
+        return true; // we don't actually use the updateBuffer method in this case, rather data is written within OSCServer.ProcessMessage()
     }
 
     bool DataThreadPlugin::foundInputSource()
@@ -125,7 +125,7 @@ namespace Bonsai {
 
         DataStream* stream = new DataStream({
            "bonsai",
-           "4x int16 values from bonsai over UDP/OSC",
+           "4x int32 values from bonsai over UDP/OSC",
            "bonsai",
            1000.0  // stream sample rate; not sure how this is actually used, the value here was chosen arbitrarily
         });
@@ -137,7 +137,7 @@ namespace Bonsai {
         continuousChannels->add(new ContinuousChannel({
             ContinuousChannel::Type::AUX,
             "CH1",
-            "4 uint16s packed into 1D float array",
+            "4 int32s packed into 1D float array",
             "CH1",
             0,  // channel bitvolts scaling, not relevant here
             stream
