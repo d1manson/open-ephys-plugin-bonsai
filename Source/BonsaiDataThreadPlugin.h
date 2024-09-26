@@ -89,8 +89,6 @@ namespace Bonsai {
     private:
         std::unique_ptr<OSCServer> server;
 
-        int getOSCPort() const;
-        String getOSCAddress() const;
         SourceNode* sourceNode;
     };
 

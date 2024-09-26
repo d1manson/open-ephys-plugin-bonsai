@@ -42,7 +42,7 @@ namespace Bonsai {
 	public:
 
 		/** Constructor */
-		OSCServer(int port, String address, DataBuffer* dataBuffer);
+		OSCServer(int port, String address, DataBuffer* dataBuffer, bool messageHasTimestamp, int messageNumValues);
 
 		/** Destructor*/
 		~OSCServer();
@@ -61,11 +61,13 @@ namespace Bonsai {
 		virtual void ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName&);
 
 	private:
-		int port;
-		String address;
+		const int port;
+		const String address;
 		std::unique_ptr<UdpListeningReceiveSocket> socket;
-		int64 nSamples;
+		const bool messageHasTimestamp;
+		const size_t messageNumValues;
 
+		int64 nSamples;
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OSCServer);
 	};
 

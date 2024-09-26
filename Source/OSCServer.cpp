@@ -2,11 +2,19 @@
 #include "OSCServer.h"
 
 namespace Bonsai {
-    OSCServer::OSCServer(int port_, String address_, DataBuffer* dataBuffer_) :
-        port(port_), address(address_), dataBuffer(dataBuffer_), nSamples(0)
-    {
-        LOGC("Creating OSC server - Port:", port, " Address:", address);
+    constexpr size_t maxMessageNumValues = 8;
 
+    OSCServer::OSCServer(int port_, String address_, DataBuffer* dataBuffer_, bool messageHasTimestamp_, int messageNumValues_) :
+        port(port_), address(address_), dataBuffer(dataBuffer_), nSamples(0), messageHasTimestamp(messageHasTimestamp_), messageNumValues(messageNumValues_)
+    {
+        
+        if (messageNumValues > maxMessageNumValues) {
+            LOGE("OSCServer only designed to support up to ", maxMessageNumValues, " values per message.");
+            return;
+        }
+
+        LOGC("Creating OSC server - Port:", port, " Address:", address);
+        
         try{
             socket = std::make_unique<UdpListeningReceiveSocket>(IpEndpointName("localhost", port), this);
             CoreServices::sendStatusMessage("OSC Server ready!");
@@ -26,7 +34,7 @@ namespace Bonsai {
     void OSCServer::ProcessMessage(const osc::ReceivedMessage& receivedMessage,
         const IpEndpointName&)
     {
-
+        
         try {
 
             if (!String(receivedMessage.AddressPattern()).equalsIgnoreCase(address)) {
@@ -43,13 +51,33 @@ namespace Bonsai {
 
             osc::ReceivedMessageArgumentStream args = receivedMessage.ArgumentStream();
             
-            float vals[4];
-            args >> vals[0] >> vals[1] >> vals[2] >> vals[3];
-            nSamples++;
-            double timestamps[4] = { nSamples, nSamples, nSamples, nSamples }; // not especially helpful, but need something
-            int64 sampleNums[4] = { nSamples * 4 + 0, nSamples * 4 + 1, nSamples * 4 + 2, nSamples * 4 + 3 };
-            uint64 eventCodes[4] = { 0,0,0,0 };
-            dataBuffer->addToBuffer(vals, sampleNums, timestamps, eventCodes, 4, 1);
+            // fill timestamp
+            double timestamps[maxMessageNumValues];
+            double ts;
+            if (messageHasTimestamp) {
+                args >> ts;
+            } else {
+                // no idea if this is a good value to use
+                ts = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
+            }
+            std::fill(timestamps, timestamps + maxMessageNumValues, ts);
+
+            // actual message values
+            float vals[maxMessageNumValues];
+            for (int i = 0; i < maxMessageNumValues; i++) {
+                if (i < messageNumValues) {
+                    args >> vals[i];
+                }
+            }
+  
+            // increment nSamples and repeat
+            int64 sampleNums[maxMessageNumValues];
+            std::fill(sampleNums, sampleNums + maxMessageNumValues, nSamples++); // not sure if smaple number should start at 0 or 1
+
+            // eventCodes are always zeros
+            static uint64 eventCodes[maxMessageNumValues] = {};
+
+            dataBuffer->addToBuffer(vals, sampleNums, timestamps, eventCodes, messageNumValues, 1);
             
         } catch (osc::Exception& e) {
             // any parsing errors such as unexpected argument types, or

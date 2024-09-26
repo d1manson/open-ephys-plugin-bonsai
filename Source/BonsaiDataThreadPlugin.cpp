@@ -36,8 +36,10 @@ namespace Bonsai {
 
     DataThreadPlugin::DataThreadPlugin(SourceNode* sn) : DataThread(sn), sourceNode(sn)
     {
-        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Port", "Bonsai OSC port", DEFAULT_OSC_PORT, 1024, 49151);
-        sourceNode->addStringParameter(Parameter::GLOBAL_SCOPE, "Address", "Bonsai source OSC address", DEFAULT_OSC_ADDRESS);
+        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Port", "Bonsai OSC port", DEFAULT_OSC_PORT, 1024, 49151, true);
+        sourceNode->addStringParameter(Parameter::GLOBAL_SCOPE, "Address", "Bonsai source OSC address", DEFAULT_OSC_ADDRESS, true);
+        sourceNode->addBooleanParameter(Parameter::GLOBAL_SCOPE, "Timestamp", "First value within message is timestamp", false, true);
+        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Values", "Number of values within messages (after timestamp)", 4, 1, 8, true);
     }
 
 
@@ -46,16 +48,6 @@ namespace Bonsai {
        
     }
 
-
-    int DataThreadPlugin::getOSCPort() const
-    {
-        return sourceNode->getParameter("Port")->getValue();
-    }
-
-    String DataThreadPlugin::getOSCAddress() const
-    {
-        return sourceNode->getParameter("Address")->getValue();
-    }
 
     bool DataThreadPlugin::updateBuffer()
     {
@@ -78,7 +70,13 @@ namespace Bonsai {
             return false;
         }
         sourceBuffers.getFirst()->clear();
-        server = std::make_unique<OSCServer>(getOSCPort(), getOSCAddress(), sourceBuffers.getFirst());
+        server = std::make_unique<OSCServer>(
+            sourceNode->getParameter("Port")->getValue(),
+            sourceNode->getParameter("Address")->getValue(),
+            sourceBuffers.getFirst(),
+            sourceNode->getParameter("Timestamp")->getValue(),
+            sourceNode->getParameter("Values")->getValue()
+        );
         if (!server || !server->IsBound()) {
             return false;
         }
@@ -129,23 +127,26 @@ namespace Bonsai {
 
         DataStream* stream = new DataStream({
            "bonsai",
-           "4x float32s values from bonsai over UDP/OSC",
+           "float32 values from bonsai over UDP/OSC",
            "bonsai",
            1000.0  // stream sample rate; not sure how this is actually used, the value here was chosen arbitrarily
         });
 
         sourceStreams->add(stream);
 
-        sourceBuffers.add(new DataBuffer(1, 4 * 1024));
+        int messageNumValues = sourceNode->getParameter("Values")->getValue();
+        sourceBuffers.add(new DataBuffer(messageNumValues, 1024));
 
-        continuousChannels->add(new ContinuousChannel({
-            ContinuousChannel::Type::AUX,
-            "BONS1",
-            "4x float32s packed into 1d array",
-            "BONS1",
-            0,  // channel bitvolts scaling, not relevant here
-            stream
-        }));
+        for (int i = 0; i < messageNumValues; i++) {
+            continuousChannels->add(new ContinuousChannel({
+                ContinuousChannel::Type::AUX,
+                "BONS" + std::to_string(i+1),
+                "float32 value from bonsai",
+                "BONS" + std::to_string(i+1),
+                0,  // channel bitvolts scaling, not relevant here
+                stream
+             }));
+        }
 
     }
 
