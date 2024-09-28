@@ -40,6 +40,7 @@ namespace Bonsai {
         sourceNode->addStringParameter(Parameter::GLOBAL_SCOPE, "Address", "Bonsai source OSC address", DEFAULT_OSC_ADDRESS, true);
         sourceNode->addBooleanParameter(Parameter::GLOBAL_SCOPE, "Timestamp", "First value within message is timestamp", false, true);
         sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Values", "Number of values within messages (after timestamp)", 4, 1, 8, true);
+        sourceNode->addFloatParameter(Parameter::GLOBAL_SCOPE, "SampleRate", "Sample Rate (Hz) to show on data stream.", 50, 1, 1000, true);
     }
 
 
@@ -129,7 +130,7 @@ namespace Bonsai {
            "bonsai",
            "float32 values from bonsai over UDP/OSC",
            "bonsai",
-           1000.0  // stream sample rate; not sure how this is actually used, the value here was chosen arbitrarily
+           sourceNode->getParameter("SampleRate")->getValue(),
         });
 
         sourceStreams->add(stream);
