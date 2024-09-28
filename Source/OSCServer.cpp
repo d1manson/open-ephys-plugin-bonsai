@@ -45,7 +45,7 @@ namespace Bonsai {
 
             if (receivedMessage.ArgumentCount() != (messageHasTimestamp ? 1 : 0) + messageNumValues) {
                 const MessageManagerLock mmLock(Thread::getCurrentThread());
-                LOGE("Expected exactly 4 args over OSC, but found: ", receivedMessage.ArgumentCount());
+                LOGE("Expected exactly ", (messageHasTimestamp ? 1 : 0) + messageNumValues, " args over OSC, but found : ", receivedMessage.ArgumentCount());
                 return;
             }
 
