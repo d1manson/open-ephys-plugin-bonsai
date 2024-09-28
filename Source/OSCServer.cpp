@@ -51,16 +51,15 @@ namespace Bonsai {
 
             osc::ReceivedMessageArgumentStream args = receivedMessage.ArgumentStream();
             
-            // fill timestamp
-            double timestamps[maxMessageNumValues];
-            double ts;
+            double timestamp;
             if (messageHasTimestamp) {
-                args >> ts;
+                args >> timestamp;
             } else {
                 // no idea if this is a good value to use
-                ts = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
+                timestamp = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
             }
-            std::fill(timestamps, timestamps + maxMessageNumValues, ts);
+            // todo: make timestamp relative to the start of the recording somehow
+
 
             // actual message values
             float vals[maxMessageNumValues];
@@ -70,14 +69,10 @@ namespace Bonsai {
                 }
             }
   
-            // increment nSamples and repeat
-            int64 sampleNums[maxMessageNumValues];
-            std::fill(sampleNums, sampleNums + maxMessageNumValues, nSamples++); // not sure if smaple number should start at 0 or 1
+            uint64 eventCode = 0;
 
-            // eventCodes are always zeros
-            static uint64 eventCodes[maxMessageNumValues] = {};
-
-            dataBuffer->addToBuffer(vals, sampleNums, timestamps, eventCodes, messageNumValues, 1);
+            dataBuffer->addToBuffer(vals, &nSamples, &timestamp, &eventCode, 1, 1);
+            nSamples++;
             
         } catch (osc::Exception& e) {
             // any parsing errors such as unexpected argument types, or
