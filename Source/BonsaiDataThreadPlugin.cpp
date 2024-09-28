@@ -148,6 +148,16 @@ namespace Bonsai {
              }));
         }
 
+
+        // we don't currently use the event channel for anything but the RecordEngine requires one (or it crashes on startup)
+        eventChannels->add(new EventChannel({
+            EventChannel::Type::TTL,
+            "Bonsai Event Channel",
+            "Dummy channel, required for RecordEngine to not crash",
+            "bonsai_ttl_events",
+            stream,
+            1
+         }));
     }
 
 
