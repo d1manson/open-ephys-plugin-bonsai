@@ -144,7 +144,7 @@ namespace Bonsai {
                 "BONS" + std::to_string(i+1),
                 "float32 value from bonsai",
                 "BONS" + std::to_string(i+1),
-                0,  // channel bitvolts scaling, not relevant here
+                6.,  // channel bitvolts scaling, not especially relevant here
                 stream
              }));
         }

@@ -59,14 +59,11 @@ namespace Bonsai {
                 timestamp = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
             }
             // todo: make timestamp relative to the start of the recording somehow
-
-
+            
             // actual message values
             float vals[maxMessageNumValues];
-            for (int i = 0; i < maxMessageNumValues; i++) {
-                if (i < messageNumValues) {
-                    args >> vals[i];
-                }
+            for (int i = 0; i < maxMessageNumValues && i < messageNumValues; i++) {
+                args >> vals[i];
             }
   
             uint64 eventCode = 0;
