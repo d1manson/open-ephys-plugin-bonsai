@@ -262,15 +262,17 @@
       </Expression>
       <Expression xsi:type="scr:ExpressionTransform">
         <scr:Expression>new (
-  Double(Item1/1000.0) as Timestamp,
-  Item2.count() &gt; 0 ? Single(Item2[0].Centroid.X/1000) : single.NAN as GreenX,
-  Item2.count() &gt; 0 ? Single(Item2[0].Centroid.Y/1000) : single.NAN as GreenY,
-  Item2.count() &gt; 1 ? Single(Item2[1].Centroid.X/1000) : single.NAN as RedX,
-  Item2.count() &gt; 1 ? Single(Item2[1].Centroid.Y/1000) : single.NAN as RedY
+  Double(Item1/1000000000.0) as Timestamp,
+  Item2.count() &gt; 0 ? Single(Item2[0].Centroid.X) : single.NAN as GreenX,
+  Item2.count() &gt; 0 ? Single(Item2[0].Centroid.Y) : single.NAN as GreenY,
+  Item2.count() &gt; 1 ? Single(Item2[1].Centroid.X) : single.NAN as RedX,
+  Item2.count() &gt; 1 ? Single(Item2[1].Centroid.Y) : single.NAN as RedY,
+  Item2.count() &gt; 0 ? Single(8) : Single(0) AS NumpixGreen, 
+  Item2.count() &gt; 1 ? Single(4) : Single(0) AS NumpixRed
 )</scr:Expression>
       </Expression>
       <Expression xsi:type="MemberSelector">
-        <Selector>Timestamp,GreenX,GreenY,RedX,RedY</Selector>
+        <Selector>Timestamp,GreenX,GreenY,RedX,RedY,NumpixGreen,NumpixRed</Selector>
       </Expression>
       <Expression xsi:type="Disable">
         <Builder xsi:type="io:CsvWriter">

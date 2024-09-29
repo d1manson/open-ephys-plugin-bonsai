@@ -171,14 +171,14 @@
     <WindowState>Normal</WindowState>
   </DialogSettings>
   <DialogSettings>
-    <Visible>true</Visible>
+    <Visible>false</Visible>
     <Location>
-      <X>560</X>
-      <Y>367</Y>
+      <X>617</X>
+      <Y>533</Y>
     </Location>
     <Size>
-      <Width>336</Width>
-      <Height>82</Height>
+      <Width>549</Width>
+      <Height>65</Height>
     </Size>
     <WindowState>Normal</WindowState>
     <VisualizerTypeName>Bonsai.Design.ObjectTextVisualizer</VisualizerTypeName>
