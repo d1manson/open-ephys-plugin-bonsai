@@ -4,8 +4,8 @@
 namespace Bonsai {
     constexpr size_t maxMessageNumValues = 8;
 
-    OSCServer::OSCServer(int port_, String address_, DataBuffer* dataBuffer_, bool messageHasTimestamp_, int messageNumValues_) :
-        port(port_), address(address_), dataBuffer(dataBuffer_), nSamples(0), messageHasTimestamp(messageHasTimestamp_), messageNumValues(messageNumValues_)
+    OSCServer::OSCServer(int port_, String address_, DataBuffer* dataBuffer_, int messageNumValues_) :
+        port(port_), address(address_), dataBuffer(dataBuffer_), nSamples(0), messageNumValues(messageNumValues_)
     {
         
         if (messageNumValues > maxMessageNumValues) {
@@ -43,23 +43,15 @@ namespace Bonsai {
                 return;
             }
 
-            if (receivedMessage.ArgumentCount() != (messageHasTimestamp ? 1 : 0) + messageNumValues) {
+            if (receivedMessage.ArgumentCount() != messageNumValues) {
                 const MessageManagerLock mmLock(Thread::getCurrentThread());
-                LOGE("Expected exactly ", (messageHasTimestamp ? 1 : 0) + messageNumValues, " args over OSC, but found : ", receivedMessage.ArgumentCount());
+                LOGE("Expected exactly ", messageNumValues, " args over OSC, but found : ", receivedMessage.ArgumentCount());
                 return;
             }
 
             osc::ReceivedMessageArgumentStream args = receivedMessage.ArgumentStream();
             
-            double timestamp;
-            if (messageHasTimestamp) {
-                args >> timestamp;
-            } else {
-                // no idea if this is a good value to use
-                timestamp = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
-            }
-            // todo: make timestamp relative to the start of the recording somehow
-            
+       
             // actual message values
             float vals[maxMessageNumValues];
             for (int i = 0; i < maxMessageNumValues && i < messageNumValues; i++) {
@@ -67,7 +59,7 @@ namespace Bonsai {
             }
   
             uint64 eventCode = 0;
-
+            double timestamp = 0; // seems that timestamp isn't actually used/respected in the downstream logic; everything assumes regular sample rate. so we just give zero.
             dataBuffer->addToBuffer(vals, &nSamples, &timestamp, &eventCode, 1, 1);
             nSamples++;
             

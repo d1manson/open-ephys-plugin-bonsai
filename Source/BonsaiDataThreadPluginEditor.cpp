@@ -27,12 +27,10 @@ namespace Bonsai {
 	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode)
 		: GenericEditor(parentNode)
 	{
-		desiredWidth = 280;
+		desiredWidth = 190;
 		addTextBoxParameterEditor("Address", 10, 75);
 		addTextBoxParameterEditor("Port", 10, 25);
-		addCheckBoxParameterEditor("Timestamp", 100, 25);
 		addTextBoxParameterEditor("Values", 100, 75);
-		addTextBoxParameterEditor("SampleRate", 190, 25);
-
+		addTextBoxParameterEditor("SampleRate", 100, 25);
 	}
 }
