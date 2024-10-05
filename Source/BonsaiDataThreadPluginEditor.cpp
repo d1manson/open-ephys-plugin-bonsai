@@ -23,6 +23,8 @@
 
 #include "BonsaiDataThreadPluginEditor.h"
 
+#include <ProcessorHeaders.h>
+
 namespace Bonsai {
 	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode)
 		: GenericEditor(parentNode)
@@ -32,5 +34,31 @@ namespace Bonsai {
 		addTextBoxParameterEditor("Port", 10, 25);
 		addTextBoxParameterEditor("Values", 100, 75);
 		addTextBoxParameterEditor("SampleRate", 100, 25);
+
+		
+		// listen for changes in paramaters to actually update the stream setup
+		for (ParameterEditor* ed : parameterEditors) {
+			for (Component* c : ed->getChildren()) {
+				if (Label* label = dynamic_cast<Label*>(c)) {
+					label->addListener(this);
+				}
+			}
+		}
+	}
+
+
+	void DataThreadPluginEditor::labelTextChanged(Label* labelThatHasChanged) {
+		//update(true);
+		//CoreServices::updateSignalChain(this);
+	}
+
+	DataThreadPluginEditor::~DataThreadPluginEditor() {
+		for (ParameterEditor* ed : parameterEditors) {
+			for (Component* c : ed->getChildren()) {
+				if (Label* label = dynamic_cast<Label*>(c)) {
+					label->removeListener(this);
+				}
+			}
+		}
 	}
 }

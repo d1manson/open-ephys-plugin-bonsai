@@ -28,17 +28,17 @@
 
 namespace Bonsai {
 
-	class DataThreadPluginEditor : public GenericEditor
+	class DataThreadPluginEditor : public GenericEditor, Label::Listener
 	{
 	public:
 		/** The class constructor, used to initialize any members. */
 		DataThreadPluginEditor(GenericProcessor* parentNode);
 
 		/** The class destructor, used to deallocate memory */
-		~DataThreadPluginEditor() { }
+		~DataThreadPluginEditor();
 
 
-
+		void labelTextChanged(Label* labelThatHasChanged);
 	};
 
 }
