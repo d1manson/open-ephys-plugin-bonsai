@@ -39,9 +39,7 @@ namespace Bonsai {
         sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Port", "Bonsai OSC port", DEFAULT_OSC_PORT, 1024, 49151, true);
         sourceNode->addStringParameter(Parameter::GLOBAL_SCOPE, "Address", "Bonsai source OSC address", DEFAULT_OSC_ADDRESS, true);
         sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Values", "Number of values within messages (after timestamp)", 4, 1, 8, true);
-        sourceNode->addFloatParameter(Parameter::GLOBAL_SCOPE, "SampleRate", "Sample Rate (Hz) to show on data stream.", 50, 1, 1000, true);
-
-        //sourceNode->addBooleanParameter(Parameter::GLOBAL_SCOPE, "Timestamp", "DEPRECATED", false, false);
+        sourceNode->addFloatParameter(Parameter::GLOBAL_SCOPE, "SampleRate", "Sample Rate (Hz) to show on data stream.", 50, 1, 1000, true);    
     }
 
 
@@ -160,7 +158,6 @@ namespace Bonsai {
             1
          }));
 
-        
     }
 
 
@@ -172,9 +169,7 @@ namespace Bonsai {
 
     std::unique_ptr<GenericEditor> DataThreadPlugin::createEditor(SourceNode* sn)
     {
-
         std::unique_ptr<DataThreadPluginEditor> editor = std::make_unique<DataThreadPluginEditor>(sn);
-
         return editor;
 
     }

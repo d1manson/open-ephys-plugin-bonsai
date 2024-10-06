@@ -23,7 +23,7 @@
 
 #include "BonsaiDataThreadPluginEditor.h"
 
-#include <ProcessorHeaders.h>
+
 
 namespace Bonsai {
 	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode)
@@ -34,9 +34,9 @@ namespace Bonsai {
 		addTextBoxParameterEditor("Port", 10, 25);
 		addTextBoxParameterEditor("Values", 100, 75);
 		addTextBoxParameterEditor("SampleRate", 100, 25);
-
 		
-		// listen for changes in paramaters to actually update the stream setup
+		
+		// see note in header about being reactive to parameter changes
 		for (ParameterEditor* ed : parameterEditors) {
 			for (Component* c : ed->getChildren()) {
 				if (Label* label = dynamic_cast<Label*>(c)) {
@@ -44,15 +44,17 @@ namespace Bonsai {
 				}
 			}
 		}
+		
 	}
 
 
 	void DataThreadPluginEditor::labelTextChanged(Label* labelThatHasChanged) {
-		//update(true);
-		//CoreServices::updateSignalChain(this);
+		// see note in header about being reactive to parameter changes
+		asyncUpdateSignalChain.triggerAsyncUpdate();
 	}
 
 	DataThreadPluginEditor::~DataThreadPluginEditor() {
+		// see note in header about being reactive to parameter changes		
 		for (ParameterEditor* ed : parameterEditors) {
 			for (Component* c : ed->getChildren()) {
 				if (Label* label = dynamic_cast<Label*>(c)) {
@@ -60,5 +62,6 @@ namespace Bonsai {
 				}
 			}
 		}
+		
 	}
 }
