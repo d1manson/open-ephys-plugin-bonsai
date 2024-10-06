@@ -2,13 +2,13 @@ This is currently unfinished.
 
 # Bonsai Plugin
 
-This runs an OSC UDP Server (using an open ephys DataThread plugin). The Server expects messages that contain 1-8 float values at a fixed sample rate,
-(you must specify the exact number of values and the sample rate in the interface). Each of the float values is given its own continuous channel. 
-You can view the raw values in openephys using the LFP viewer, though it's not going to be that interesting in that form.
+This runs an OSC UDP Server (using an open ephys DataThread plugin). The Server expects messages that optionally start with a timestamp value, and then contain 1-8 float values
+(you must specify the exact number of values in the interface and specify if there is a timetamp first or not). Each of the float values is given its own continuous channel, 
+with the float value combined with the provided timestamp. You can view the raw values in openephys using the LFP viewer, though it's not going to be that interesting in that form.
 
 The intention is that the data is coming from a camera via Bonsai, with the float values corresponding to some kind of x and y values.
 
-WARNING: this is not yet going to allow for any kind of precision in terms of timing. You may wish to pass a timestamp as one of the float values, so you can record/validate
+WARNING: this is not yet going to allow for any kind of precision in terms of timing. The timestamp you pass, so you can record/validate
 exact timings acording to the original source (camera). In order to synchronise more precisely with other data sources you may need to feed a hardware TTL channel from your 
 source hardware into the acquisition board you are using for other data (and then create some kind of logic to match them up either as an Openephys plugin or a post-processing step).
 

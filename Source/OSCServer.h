@@ -42,7 +42,7 @@ namespace Bonsai {
 	public:
 
 		/** Constructor */
-		OSCServer(int port, String address, DataBuffer* dataBuffer, int messageNumValues);
+		OSCServer(int port, String address, DataBuffer* dataBuffer, bool messageHasTimestamp, int messageNumValues);
 
 		/** Destructor*/
 		~OSCServer();
@@ -64,6 +64,7 @@ namespace Bonsai {
 		const int port;
 		const String address;
 		std::unique_ptr<UdpListeningReceiveSocket> socket;
+		const bool messageHasTimestamp;
 		const size_t messageNumValues;
 
 		int64 nSamples;
