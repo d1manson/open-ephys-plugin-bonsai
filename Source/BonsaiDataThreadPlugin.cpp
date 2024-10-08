@@ -136,13 +136,19 @@ namespace Bonsai {
         sourceStreams->add(stream);
 
         int messageNumValues = sourceNode->getParameter("Values")->getValue();
+        bool hasTimestamp = sourceNode->getParameter("Timestamp")->getValue();
+
+        if (hasTimestamp) {
+            messageNumValues++;
+        }
+
         sourceBuffers.add(new DataBuffer(messageNumValues, 1024));
 
         for (int i = 0; i < messageNumValues; i++) {
             continuousChannels->add(new ContinuousChannel({
                 ContinuousChannel::Type::AUX,
                 "BONS" + std::to_string(i+1),
-                "float32 value from bonsai",
+                i == 0 && hasTimestamp ? "float32 timestamp from bonsai" : "float32 value from bonsai",
                 "BONS" + std::to_string(i+1),
                 6.,  // channel bitvolts scaling, not especially relevant here
                 stream

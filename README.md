@@ -3,8 +3,15 @@ This is currently unfinished.
 # Bonsai Plugin
 
 This runs an OSC UDP Server (using an open ephys DataThread plugin). The Server expects messages that optionally start with a timestamp value, and then contain 1-8 float values
-(you must specify the exact number of values in the interface and specify if there is a timetamp first or not). Each of the float values is given its own continuous channel, 
-with the float value combined with the provided timestamp. You can view the raw values in openephys using the LFP viewer, though it's not going to be that interesting in that form.
+(you must specify the exact number of values in the interface and specify if there is a timetamp first or not). Each of the float values is given its own continuous channel.
+You can view the raw values in openephys using the LFP viewer, though it's not going to be that interesting in that form. The timestamp is not plugged into the proper timestamp
+machinery of openephys because that doesn't actually seem to be visible to the record engine downstream. Instead we put the timestamp into its own channel (the first channel,
+before the other channels).
+
+There is a slight problem with having a 32bit timestamp though:  32 bit floats can only just about represent 3 decimal places above 20,000 (5hs in seconds); at that point there are
+about 5 representable values in the third decimal place for each value in the second decimal place. But hopefully that's enough here. The timestamp provided by Bonsai should be
+a 64 bit double, but it will then be converted to a single (32bit) float here, with the first received timestamp treated as the zero point (which ensures that the number are small
+so long as acquisition is restarted at least every 4hrs or so).
 
 The intention is that the data is coming from a camera via Bonsai, with the float values corresponding to some kind of x and y values.
 

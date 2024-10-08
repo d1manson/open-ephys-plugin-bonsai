@@ -66,6 +66,7 @@ namespace Bonsai {
 		std::unique_ptr<UdpListeningReceiveSocket> socket;
 		const bool messageHasTimestamp;
 		const size_t messageNumValues;
+		double firstTimestamp; // see readme for info on timestamp hackiness
 
 		int64 nSamples;
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OSCServer);

@@ -50,21 +50,29 @@ namespace Bonsai {
             }
 
             osc::ReceivedMessageArgumentStream args = receivedMessage.ArgumentStream();
-            
-            double timestamp;
+
+            float vals[maxMessageNumValues + 1];
             if (messageHasTimestamp) {
+                // see note in readme about timestamp hackiness
+                double timestamp;
                 args >> timestamp;
+                if (nSamples == 0) {
+                    firstTimestamp = timestamp;
+                }
+                vals[0] = timestamp - firstTimestamp;
+
+                for (int i = 0; i < maxMessageNumValues && i < messageNumValues; i++) {
+                    args >> vals[i+1];
+                }
             } else {
-                timestamp = 0; // could maybe create timestamps here instead
+                for (int i = 0; i < maxMessageNumValues && i < messageNumValues; i++) {
+                    args >> vals[i];
+                }
             }
             
-            // actual message values
-            float vals[maxMessageNumValues];
-            for (int i = 0; i < maxMessageNumValues && i < messageNumValues; i++) {
-                args >> vals[i];
-            }
   
             uint64 eventCode = 0;
+            double timestamp = 0; // see note in readme about timestamps
             dataBuffer->addToBuffer(vals, &nSamples, &timestamp, &eventCode, 1, 1);
             nSamples++;
             
