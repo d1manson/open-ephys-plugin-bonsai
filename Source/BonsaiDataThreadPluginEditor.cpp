@@ -42,14 +42,23 @@ namespace Bonsai {
 			for (Component* c : ed->getChildren()) {
 				if (Label* label = dynamic_cast<Label*>(c)) {
 					label->addListener(this);
+				} else if (ToggleButton* button = dynamic_cast<ToggleButton*>(c)) {
+					LOGC("Found button");
+					button->addListener(this);
 				}
+
 			}
 		}
 		
 	}
 
 
-	void DataThreadPluginEditor::labelTextChanged(Label* labelThatHasChanged) {
+	void DataThreadPluginEditor::labelTextChanged(Label* src) {
+		// see note in header about being reactive to parameter changes
+		asyncUpdateSignalChain.triggerAsyncUpdate();
+	}
+
+	void DataThreadPluginEditor::buttonClicked(Button* src) {
 		// see note in header about being reactive to parameter changes
 		asyncUpdateSignalChain.triggerAsyncUpdate();
 	}
@@ -60,6 +69,8 @@ namespace Bonsai {
 			for (Component* c : ed->getChildren()) {
 				if (Label* label = dynamic_cast<Label*>(c)) {
 					label->removeListener(this);
+				} else if (ToggleButton* button = dynamic_cast<ToggleButton*>(c)) {
+					button->removeListener(this);
 				}
 			}
 		}
