@@ -49,16 +49,16 @@ namespace Bonsai {
         // ------------------------------------------------------------
 
         /** Called repeatedly to add any available data to the buffer */
-        bool updateBuffer();
+        bool updateBuffer() override;
 
         /** Returns true if the data source is connected, false otherwise.*/
-        bool foundInputSource();
+        bool foundInputSource() override;
 
         /** Initializes data transfer.*/
-        bool startAcquisition();
+        bool startAcquisition() override;
 
         /** Stops data transfer.*/
-        bool stopAcquisition();
+        bool stopAcquisition() override;
 
         /* Passes the processor's info objects to DataThread, to allow them to be configured */
         void updateSettings(OwnedArray<ContinuousChannel>* continuousChannels,
@@ -66,7 +66,7 @@ namespace Bonsai {
             OwnedArray<SpikeChannel>* spikeChannels,
             OwnedArray<DataStream>* sourceStreams,
             OwnedArray<DeviceInfo>* devices,
-            OwnedArray<ConfigurationObject>* configurationObjects);
+            OwnedArray<ConfigurationObject>* configurationObjects) override;
 
         // ------------------------------------------------------------
         //                   VIRTUAL METHODS 
