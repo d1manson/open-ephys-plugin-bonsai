@@ -4,13 +4,18 @@
 namespace Bonsai {
     constexpr size_t maxMessageNumValues = 8;
 
-    OSCServer::OSCServer(int port_, String address_, DataBuffer* dataBuffer_, bool messageHasTimestamp_, int messageNumValues_) :
-        port(port_), address(address_), dataBuffer(dataBuffer_), nSamples(0), messageHasTimestamp(messageHasTimestamp_), messageNumValues(messageNumValues_)
+    OSCServer::OSCServer(int port_, String address_, DataBuffer* dataBuffer_, bool messageHasTimestamp_, int messageNumValues_, float sampleRate_) :
+        port(port_), address(address_), dataBuffer(dataBuffer_), nSamples(0), messageHasTimestamp(messageHasTimestamp_),
+        messageNumValues(messageNumValues_), sampleRate(sampleRate_)
     {
         
         if (messageNumValues > maxMessageNumValues) {
             LOGE("OSCServer only designed to support up to ", maxMessageNumValues, " values per message.");
             return;
+        }
+
+        if(messageHasTimestamp){
+            buffer.resize(10 * sampleRate + 1);
         }
 
         LOGC("Creating OSC server - Port:", port, " Address:", address);
@@ -30,7 +35,17 @@ namespace Bonsai {
         stop();
     }
 
- 
+    void OSCServer::stepBuffer(){
+        bufferWriteIdx = (bufferWriteIdx + 1) % buffer.size();
+        buffer[bufferWriteIdx] = {};
+    }
+
+    void OSCServer::copyBuffer(std::vector<BonsaiSampleProblems>& buffer_, size_t& startIndex_){
+        const ScopedLock sl(lock);
+        buffer_.assign(buffer.begin(), buffer.end());
+        startIndex_ = (bufferWriteIdx + 1) % buffer.size();
+    }
+
     void OSCServer::ProcessMessage(const osc::ReceivedMessage& receivedMessage,
         const IpEndpointName&)
     {
@@ -51,14 +66,49 @@ namespace Bonsai {
 
             osc::ReceivedMessageArgumentStream args = receivedMessage.ArgumentStream();
 
-            float vals[maxMessageNumValues + 1];
+            uint64 eventCode = 0;
+            double timestamp = 0; // see note in readme about timestamps
+
+            float vals[maxMessageNumValues + 1] = {};
             if (messageHasTimestamp) {
                 // see note in readme about timestamp hackiness
                 double timestamp;
                 args >> timestamp;
                 if (nSamples == 0) {
                     firstTimestamp = timestamp;
+                } else {
+                    const ScopedLock sl(lock);
+
+                    double error = (timestamp - firstTimestamp) * sampleRate - nSamples;
+
+                    if (error < -0.5) {
+                        buffer[bufferWriteIdx].dropped_super_early = 1;
+                        return; // more than 50% too early, drop sample entirely
+                    }
+                    if (error > 1000){
+                        LOGE("Bonsai data gap of ", error, " samples is way too bad, stopping acquisition. (timestamp on latest sample is ", timestamp, "; the very first timestamp was ", firstTimestamp, ").");
+                        CoreServices::setAcquisitionStatus(false);
+                        return;
+                    }
+                    if (error > 0.5){
+                        // this sample is too late, fill the gap with 1 or more nan-timestamped / zero valued samples
+                        timestamp = std::nan("");
+                        size_t filled_samples = static_cast<int>(std::ceil(error));
+                        std::vector<float> zeros(messageNumValues * filled_samples, 0.0f);
+                        dataBuffer->addToBuffer(zeros.data(), &nSamples, &timestamp, &eventCode, filled_samples, 1);
+                        while (error > 0.5) {
+                            nSamples++;
+                            buffer[bufferWriteIdx].filled_too_late = 1;
+                            stepBuffer();
+                            error -= 1;
+                        }
+                    }
+
+                    buffer[bufferWriteIdx].used_value = 1;
+                    buffer[bufferWriteIdx].error_is_negative = error < 0;
+                    buffer[bufferWriteIdx].error_size = (error < -0.1 || error > 0.1) + (error < -0.25 || error > 0.25);
                 }
+
                 vals[0] = timestamp - firstTimestamp;
 
                 for (int i = 0; i < maxMessageNumValues && i < messageNumValues; i++) {
@@ -70,9 +120,6 @@ namespace Bonsai {
                 }
             }
             
-  
-            uint64 eventCode = 0;
-            double timestamp = 0; // see note in readme about timestamps
             dataBuffer->addToBuffer(vals, &nSamples, &timestamp, &eventCode, 1, 1);
             nSamples++;
             

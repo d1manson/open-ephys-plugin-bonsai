@@ -76,7 +76,8 @@ namespace Bonsai {
             sourceNode->getParameter("Address")->getValue(),
             sourceBuffers.getFirst(),
             sourceNode->getParameter("Timestamp")->getValue(),
-            sourceNode->getParameter("Values")->getValue()
+            sourceNode->getParameter("Values")->getValue(),
+            sourceNode->getParameter("SampleRate")->getValue()
         );
         if (!server || !server->IsBound()) {
             return false;
