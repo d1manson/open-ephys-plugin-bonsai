@@ -82,6 +82,7 @@ namespace Bonsai {
         if (!server || !server->IsBound()) {
             return false;
         }
+        reinterpret_cast<DataThreadPluginEditor*>(sourceNode->getEditor())->setServer(server.get());
         startThread(); // will call run() on this class, which in turn calls server->run()
         return true;
     }
@@ -106,6 +107,7 @@ namespace Bonsai {
         if (!stopThread(500)) {
             return false;
         }
+        reinterpret_cast<DataThreadPluginEditor*>(sourceNode->getEditor())->setServer(nullptr);
         server = nullptr;
         return true;
     }

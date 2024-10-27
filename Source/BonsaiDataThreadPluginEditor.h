@@ -26,8 +26,28 @@
 
 #include <EditorHeaders.h>
 #include <ProcessorHeaders.h>
+#include "OSCServer.h"
 
 namespace Bonsai {
+
+
+    class OSCServer;
+
+    class SampleProblemsComponent : public Component {
+    public:
+        SampleProblemsComponent();
+        ~SampleProblemsComponent();
+        std::vector<BonsaiSampleProblems> buffer;
+        size_t bufferIndex = 0;
+
+        void paint(Graphics& g) override;
+
+    private:
+        /** Generates an assertion if this class leaks */
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SampleProblemsComponent);
+    };
+
+
 
 	// Note on being reactive to parameter changes..
 	// Something about the DataThread class doesn't automatically support updating the signal chain when a parameter is changed.
@@ -45,7 +65,7 @@ namespace Bonsai {
 	public:
 		AsyncUpdateSignalChain(GenericEditor* editor_) : editor(editor_) {};
 		~AsyncUpdateSignalChain() { editor = nullptr; };
-		void handleAsyncUpdate() { CoreServices::updateSignalChain(editor); }
+		void handleAsyncUpdate() { CoreServices::updateSignalChain(editor); };
 	private:
 		GenericEditor* editor;
 	};
@@ -53,7 +73,7 @@ namespace Bonsai {
 
 
 
-	class DataThreadPluginEditor : public GenericEditor, Label::Listener, Button::Listener
+	class DataThreadPluginEditor : public GenericEditor, Label::Listener, Button::Listener, Timer
 	{
 	public:
 		/** The class constructor, used to initialize any members. */
@@ -65,11 +85,20 @@ namespace Bonsai {
 		void labelTextChanged(Label*) override;
 		void buttonClicked(Button*)  override;
 
+        void timerCallback() override;
+        void setServer(OSCServer* server_);
+
 	private:
 
 		AsyncUpdateSignalChain asyncUpdateSignalChain = { this };
-		
-	};
+
+        /* lock is used to guard access to the server pointer. sampleProblemsComponent needs
+          its buffer updated by server.copyBuffer() */
+        CriticalSection lock;
+        OSCServer* server = nullptr;
+        SampleProblemsComponent sampleProblemsComponent = {};
+
+    };
 
 }
 #endif

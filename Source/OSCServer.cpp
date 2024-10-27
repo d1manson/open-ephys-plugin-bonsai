@@ -107,6 +107,7 @@ namespace Bonsai {
                     buffer[bufferWriteIdx].used_value = 1;
                     buffer[bufferWriteIdx].error_is_negative = error < 0;
                     buffer[bufferWriteIdx].error_size = (error < -0.1 || error > 0.1) + (error < -0.25 || error > 0.25);
+                    stepBuffer();
                 }
 
                 vals[0] = timestamp - firstTimestamp;

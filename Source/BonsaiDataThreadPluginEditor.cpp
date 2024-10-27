@@ -35,7 +35,10 @@ namespace Bonsai {
 		addCheckBoxParameterEditor("Timestamp", 100, 25);
 		addTextBoxParameterEditor("Values", 100, 75);
 		addTextBoxParameterEditor("SampleRate", 190, 25);
-		
+
+		sampleProblemsComponent.setBounds(190, 70, 82, 50);
+        addAndMakeVisible(&sampleProblemsComponent);
+        startTimer(50);
 		
 		// see note in header about being reactive to parameter changes
 		for (ParameterEditor* ed : parameterEditors) {
@@ -43,7 +46,6 @@ namespace Bonsai {
 				if (Label* label = dynamic_cast<Label*>(c)) {
 					label->addListener(this);
 				} else if (ToggleButton* button = dynamic_cast<ToggleButton*>(c)) {
-					LOGC("Found button");
 					button->addListener(this);
 				}
 
@@ -63,6 +65,19 @@ namespace Bonsai {
 		asyncUpdateSignalChain.triggerAsyncUpdate();
 	}
 
+    void DataThreadPluginEditor::setServer(OSCServer* server_){
+         const ScopedLock sl(lock);
+         server = server_;
+    }
+
+    void DataThreadPluginEditor::timerCallback(){
+         const ScopedLock sl(lock);
+         if(server != nullptr){
+            server->copyBuffer(sampleProblemsComponent.buffer, sampleProblemsComponent.bufferIndex);
+         }
+         sampleProblemsComponent.repaint();
+    }
+
 	DataThreadPluginEditor::~DataThreadPluginEditor() {
 		// see note in header about being reactive to parameter changes		
 		for (ParameterEditor* ed : parameterEditors) {
@@ -75,4 +90,18 @@ namespace Bonsai {
 			}
 		}
 	}
+
+	SampleProblemsComponent::SampleProblemsComponent(){
+	}
+	SampleProblemsComponent::~SampleProblemsComponent(){
+    }
+    void SampleProblemsComponent::paint(Graphics& g){
+        g.fillAll(Colours::black);
+        g.setColour(Colours::white);
+        g.drawText(String(bufferIndex), 10, 20, getWidth(), 20, Justification::centred);
+        /*for(int i=0; i<10; i++){
+            auto v = buffer[(bufferIndex + i) % buffer.size()];
+            g.drawText(String((bufferIndex + i) % buffer.size()), i*10, 20, getWidth(), 20, Justification::centred);
+        }*/
+    }
 }
