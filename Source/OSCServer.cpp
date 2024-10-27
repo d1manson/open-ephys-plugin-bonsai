@@ -77,16 +77,15 @@ namespace Bonsai {
                         return;
                     }
                     if (error > 0.5){
-                        // this sample is too late, fill the gap with 1 or more nan-timestamped / zero valued samples
+                        // this sample is too late, fill the gap with 1 or more nan-valued samples
                         size_t filled_samples = static_cast<int>(std::ceil(error));
-                        std::vector<float> vals_filled(messageNumValues * filled_samples, 0.0f);
+                        std::vector<float> vals_filled(messageNumValues * filled_samples, std::nanf(""));
+                        dataBuffer->addToBuffer(vals_filled.data(), &nSamples, &timestamp, &eventCode, filled_samples, 1);
+                        nSamples += filled_samples;
                         for (size_t i=0; i < filled_samples; i++) {
-                            vals_filled[i*messageNumValues + 0] = std::nan("");
                             qualityInfo.bufferWritePtr->filled_too_late = 1;
                             qualityInfo.stepWrite(sl);
                         }
-                        dataBuffer->addToBuffer(vals_filled.data(), &nSamples, &timestamp, &eventCode, filled_samples, 1);
-                        nSamples += filled_samples;
                         error -= filled_samples;
                     }
 

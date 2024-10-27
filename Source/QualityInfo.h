@@ -9,9 +9,9 @@ namespace Bonsai {
   When timestamps are provided in samples, we check the timestamp on a given sample relative to what it should be
   if we'd been seeing perfect sampling frequency relative to the first timestamp seen. If a given sample is earlier by
   over 50% of the sampling interval then we drop the sample entirely. If a sample is more than 50% late, then we fill
-  the gap with one or more samples with nan-timestamp and zeros for the other values. Note that for a single sample it's
-  possible that both of these things happened, i.e. we dropped a prior sample that was super early but then had to fill
-  the gap. If a sample does arrive within +-50% of the expected time we record the error.
+  the gap with one or more samples consisting of nans. Note that for a single sample it's possible that both of these
+  things happened, i.e. we dropped a prior sample that was super early but then had to fill the gap. If a sample does
+  arrive within +-50% of the expected time we record the error.
 */
 struct BonsaiSampleQuality {
     uint8_t dropped_super_early: 1;
