@@ -1,4 +1,4 @@
-# Bonsai Plugin
+# Open Ephys Plugin - Bonsai
 
 ![image](https://github.com/user-attachments/assets/25d66467-8fc4-40d6-a082-40c90fecc8d6)
 
