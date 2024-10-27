@@ -39,7 +39,7 @@ namespace Bonsai {
         ~SampleQualityComponent();
         std::vector<BonsaiSampleQuality> buffer;
         size_t bufferIndex = 0;
-
+        int sampleRate = 0;
         void paint(Graphics& g) override;
 
     private:

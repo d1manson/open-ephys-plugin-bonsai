@@ -62,7 +62,7 @@ struct BonsaiSampleQuality {
 	public:
 
 		/** Constructor */
-		OSCServer(int port, String address, DataBuffer* dataBuffer, bool messageHasTimestamp, int messageNumValues, float sampleRate_);
+		OSCServer(int port, String address, DataBuffer* dataBuffer, bool messageHasTimestamp, int messageNumValues, int sampleRate_);
 
 		/** Destructor*/
 		~OSCServer();
@@ -76,7 +76,7 @@ struct BonsaiSampleQuality {
 
 		bool IsBound() { return socket && socket->IsBound(); };
 
-        void copyQualityBuffer(std::vector<BonsaiSampleQuality>& qualityBuffer_, size_t& startIndex_);
+        void copyQualityBuffer(std::vector<BonsaiSampleQuality>& qualityBuffer_, size_t& startIndex_, int& sampleRate_);
 
 	protected:
 		/** OscPacketListener method*/
@@ -90,7 +90,7 @@ struct BonsaiSampleQuality {
 		const size_t messageNumValues;
 		double firstTimestamp; // see readme for info on timestamp hackiness
 
-        const double sampleRate;
+        const int sampleRate;
 
         /* track every sample for 10s in a circular buffer. it's sized dynamically as it depends on sample rate
            the BonsaiDataThreadPluginEditor can use copyQualityBuffer() to get the buffer. */

@@ -38,7 +38,7 @@ namespace Bonsai {
 
 		sampleQualityComponent.setBounds(190, 70, 82, 50);
         addAndMakeVisible(&sampleQualityComponent);
-        startTimer(50);
+        startTimer(5);
 		
 		// see note in header about being reactive to parameter changes
 		for (ParameterEditor* ed : parameterEditors) {
@@ -73,7 +73,7 @@ namespace Bonsai {
     void DataThreadPluginEditor::timerCallback(){
          const ScopedLock sl(lock);
          if(server != nullptr){
-            server->copyQualityBuffer(sampleQualityComponent.buffer, sampleQualityComponent.bufferIndex);
+            server->copyQualityBuffer(sampleQualityComponent.buffer, sampleQualityComponent.bufferIndex, sampleQualityComponent.sampleRate);
          }
          sampleQualityComponent.repaint();
     }
@@ -98,7 +98,9 @@ namespace Bonsai {
     void SampleQualityComponent::paint(Graphics& g){
         g.fillAll(Colours::black);
         g.setColour(Colours::white);
-        g.drawText(String(bufferIndex), 10, 20, getWidth(), 20, Justification::centred);
+
+
+        g.drawText(String(sampleRate) + " "  + String(bufferIndex), 10, 20, getWidth(), 20, Justification::centred);
         /*for(int i=0; i<10; i++){
             auto v = buffer[(bufferIndex + i) % buffer.size()];
             g.drawText(String((bufferIndex + i) % buffer.size()), i*10, 20, getWidth(), 20, Justification::centred);

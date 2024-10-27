@@ -4,7 +4,7 @@
 namespace Bonsai {
     constexpr size_t maxMessageNumValues = 8;
 
-    OSCServer::OSCServer(int port_, String address_, DataBuffer* dataBuffer_, bool messageHasTimestamp_, int messageNumValues_, float sampleRate_) :
+    OSCServer::OSCServer(int port_, String address_, DataBuffer* dataBuffer_, bool messageHasTimestamp_, int messageNumValues_, int sampleRate_) :
         port(port_), address(address_), dataBuffer(dataBuffer_), nSamples(0), messageHasTimestamp(messageHasTimestamp_),
         messageNumValues(messageNumValues_), sampleRate(sampleRate_)
     {
@@ -15,7 +15,7 @@ namespace Bonsai {
         }
 
         if(messageHasTimestamp){
-            qualityBuffer.resize(10 * sampleRate + 1);
+            qualityBuffer.resize(10 * sampleRate);
         }
 
         LOGC("Creating OSC server - Port:", port, " Address:", address);
@@ -40,10 +40,11 @@ namespace Bonsai {
         qualityBuffer[qualityBufferIdx] = {};
     }
 
-    void OSCServer::copyQualityBuffer(std::vector<BonsaiSampleQuality>& qualityBuffer_, size_t& startIndex_){
+    void OSCServer::copyQualityBuffer(std::vector<BonsaiSampleQuality>& qualityBuffer_, size_t& startIndex_, int& sampleRate_){
         const ScopedLock sl(lock);
         qualityBuffer_.assign(qualityBuffer.begin(), qualityBuffer.end());
         startIndex_ = (qualityBufferIdx + 1) % qualityBuffer.size();
+        sampleRate_ = sampleRate;
     }
 
     void OSCServer::ProcessMessage(const osc::ReceivedMessage& receivedMessage,
