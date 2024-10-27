@@ -31,6 +31,7 @@
 #include "oscpack/osc/OscPacketListener.h"
 #include "oscpack/ip/UdpSocket.h"
 #include "OSCServer.h"
+#include "QualityInfo.h"
 
 namespace Bonsai {
 
@@ -86,10 +87,19 @@ namespace Bonsai {
         String handleConfigMessage(String msg) override;
 
         void run() override;
+
+        /* Reference to this is provided to the server and the sampleQualityComponent within the editor. Uses a lock
+           for simplicity. */
+        QualityInfo qualityInfo;
+
+
     private:
         std::unique_ptr<OSCServer> server;
 
         SourceNode* sourceNode;
+
+
+
     };
 
 }

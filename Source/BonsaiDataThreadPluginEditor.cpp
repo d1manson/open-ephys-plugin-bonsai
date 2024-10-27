@@ -26,8 +26,8 @@
 
 
 namespace Bonsai {
-	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode)
-		: GenericEditor(parentNode)
+	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode, QualityInfo& qualityInfo)
+		: GenericEditor(parentNode), sampleQualityComponent(qualityInfo)
 	{
 		desiredWidth = 280;
 		addTextBoxParameterEditor("Address", 10, 75);
@@ -35,7 +35,9 @@ namespace Bonsai {
 		addCheckBoxParameterEditor("Timestamp", 100, 25);
 		addTextBoxParameterEditor("Values", 100, 75);
 		addTextBoxParameterEditor("SampleRate", 190, 25);
-		
+
+		sampleQualityComponent.setBounds(190, 70, SampleQualityComponent::width, SampleQualityComponent::height);
+        addAndMakeVisible(&sampleQualityComponent);
 		
 		// see note in header about being reactive to parameter changes
 		for (ParameterEditor* ed : parameterEditors) {
@@ -43,7 +45,6 @@ namespace Bonsai {
 				if (Label* label = dynamic_cast<Label*>(c)) {
 					label->addListener(this);
 				} else if (ToggleButton* button = dynamic_cast<ToggleButton*>(c)) {
-					LOGC("Found button");
 					button->addListener(this);
 				}
 
@@ -75,4 +76,82 @@ namespace Bonsai {
 			}
 		}
 	}
+
+
+    SampleQualityComponent::SampleQualityComponent(QualityInfo& qualityInfo_):
+        qualityInfo(qualityInfo_) {
+            startTimer(5);
+    };
+
+    void SampleQualityComponent::timerCallback(){
+         repaint();
+    }
+
+    void SampleQualityComponent::paint(Graphics& g){
+
+        constexpr int margin = 1;
+        constexpr int nSeconds = QualityInfo::bufferSeconds;
+        constexpr int colWidth = (width - margin * 2) / nSeconds;
+
+        RectangleList<int> rectsGreen{};
+        RectangleList<int> rectsRed{};
+        RectangleList<int> rectsWhite{};
+
+        {
+            const ScopedLock sl(qualityInfo.lock); // when reading from qualityInfo, need to lock it
+
+            if(qualityInfo.enabled){
+
+                int currentBlock = qualityInfo.bufferStartIdx / qualityInfo.sampleRate;
+                int cellHeight = std::max(1, (height - margin*2) / qualityInfo.sampleRate);
+
+                for(int i=0; i<qualityInfo.buffer.size(); i++){
+                    int block = i / qualityInfo.sampleRate;
+                    int row = i % qualityInfo.sampleRate;
+
+                    if(block == currentBlock && i >= qualityInfo.bufferStartIdx){
+                        continue; // ignore the tail end of the buffer
+                    }
+
+                    auto v = qualityInfo.buffer[i];
+
+
+                    Rectangle<int> rect{
+                        margin + (block == currentBlock ? nSeconds -1 : (nSeconds -1 + block - currentBlock) % nSeconds) * colWidth,
+                        height - margin - (row + 1) * cellHeight,
+                        colWidth,
+                        cellHeight};
+
+                    if(v.dropped_super_early){
+                        Rectangle<int> rect2 = rect;
+                        rect2.setWidth(1);
+                        rectsRed.addWithoutMerging(rect2);
+                    }
+
+                    if(v.filled_too_late){
+                        rectsWhite.addWithoutMerging(rect);
+                    } else if(v.used_value){
+                        int reducedWidth = colWidth / 4 * v.error_size;
+                        rect.setWidth(colWidth - reducedWidth);
+                        rect.setX(rect.getX() + v.error_is_negative * reducedWidth);
+                        rectsGreen.addWithoutMerging(rect);
+                    }
+                }
+            }
+
+        }
+
+        g.fillAll(Colours::grey);
+
+        g.setColour(Colours::green);
+        g.fillRectList(rectsGreen);
+
+        g.setColour(Colours::white);
+        g.fillRectList(rectsWhite);
+
+        g.setColour(Colours::red);
+        g.fillRectList(rectsRed);
+        //g.drawText(String(sampleRate) + " "  + String(bufferIndex), 10, 20, getWidth(), 20, Justification::centred);
+
+    }
 }

@@ -40,7 +40,7 @@ namespace Bonsai {
         sourceNode->addStringParameter(Parameter::GLOBAL_SCOPE, "Address", "Bonsai source OSC address", DEFAULT_OSC_ADDRESS, true);
         sourceNode->addBooleanParameter(Parameter::GLOBAL_SCOPE, "Timestamp", "First value within message is timestamp", true, true);
         sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Values", "Number of values within messages (after timestamp)", 6, 1, 8, true);
-        sourceNode->addFloatParameter(Parameter::GLOBAL_SCOPE, "SampleRate", "Sample Rate (Hz) to show on data stream.", 50, 1, 1000, true);    
+        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "SampleRate", "Sample Rate (Hz) to show on data stream.", 50, 1, 1000, true);
     }
 
 
@@ -71,13 +71,20 @@ namespace Bonsai {
             return false;
         }
         sourceBuffers.getFirst()->clear();
+
+        bool hasTimestamp = sourceNode->getParameter("Timestamp")->getValue();
+        int sampleRate = sourceNode->getParameter("SampleRate")->getValue();
+        qualityInfo.initialise(sampleRate, hasTimestamp);
+
         server = std::make_unique<OSCServer>(
             sourceNode->getParameter("Port")->getValue(),
             sourceNode->getParameter("Address")->getValue(),
             sourceBuffers.getFirst(),
-            sourceNode->getParameter("Timestamp")->getValue(),
-            sourceNode->getParameter("Values")->getValue()
+            hasTimestamp,
+            sourceNode->getParameter("Values")->getValue(),
+            qualityInfo
         );
+
         if (!server || !server->IsBound()) {
             return false;
         }
@@ -126,11 +133,12 @@ namespace Bonsai {
         sourceBuffers.clear();
         continuousChannels->clear();
 
+        int sampleRate = sourceNode->getParameter("SampleRate")->getValue();
         DataStream* stream = new DataStream({
            "bonsai",
            "float32 values from bonsai over UDP/OSC",
            "bonsai",
-           sourceNode->getParameter("SampleRate")->getValue(),
+           static_cast<float>(sampleRate),
         });
 
         sourceStreams->add(stream);
@@ -176,7 +184,7 @@ namespace Bonsai {
 
     std::unique_ptr<GenericEditor> DataThreadPlugin::createEditor(SourceNode* sn)
     {
-        std::unique_ptr<DataThreadPluginEditor> editor = std::make_unique<DataThreadPluginEditor>(sn);
+        std::unique_ptr<DataThreadPluginEditor> editor = std::make_unique<DataThreadPluginEditor>(sn, qualityInfo);
         return editor;
 
     }

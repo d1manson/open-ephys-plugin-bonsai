@@ -26,8 +26,29 @@
 
 #include <EditorHeaders.h>
 #include <ProcessorHeaders.h>
+#include "QualityInfo.h"
 
 namespace Bonsai {
+
+
+    class SampleQualityComponent : public Component, Timer {
+    public:
+        SampleQualityComponent(QualityInfo& qualityInfo_);
+        ~SampleQualityComponent() {};
+
+        QualityInfo& qualityInfo;
+
+        void timerCallback() override;
+        void paint(Graphics& g) override;
+
+        constexpr static int width = 82;
+        constexpr static int height = 50;
+    private:
+        /** Generates an assertion if this class leaks */
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SampleQualityComponent);
+    };
+
+
 
 	// Note on being reactive to parameter changes..
 	// Something about the DataThread class doesn't automatically support updating the signal chain when a parameter is changed.
@@ -45,7 +66,7 @@ namespace Bonsai {
 	public:
 		AsyncUpdateSignalChain(GenericEditor* editor_) : editor(editor_) {};
 		~AsyncUpdateSignalChain() { editor = nullptr; };
-		void handleAsyncUpdate() { CoreServices::updateSignalChain(editor); }
+		void handleAsyncUpdate() { CoreServices::updateSignalChain(editor); };
 	private:
 		GenericEditor* editor;
 	};
@@ -57,7 +78,7 @@ namespace Bonsai {
 	{
 	public:
 		/** The class constructor, used to initialize any members. */
-		DataThreadPluginEditor(GenericProcessor* parentNode);
+		DataThreadPluginEditor(GenericProcessor* parentNode, QualityInfo& qualityInfo);
 
 		/** The class destructor, used to deallocate memory */
 		~DataThreadPluginEditor();
@@ -68,8 +89,10 @@ namespace Bonsai {
 	private:
 
 		AsyncUpdateSignalChain asyncUpdateSignalChain = { this };
-		
-	};
+
+        SampleQualityComponent sampleQualityComponent;
+
+    };
 
 }
 #endif

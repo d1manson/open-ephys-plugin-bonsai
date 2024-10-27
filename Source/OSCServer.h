@@ -30,19 +30,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "oscpack/osc/OscPacketListener.h"
 #include "oscpack/ip/UdpSocket.h"
 #include <DataThreadHeaders.h>
+#include "QualityInfo.h"
 
 /*
 	An OSC UDP Server that expects messages with 4 float32 values. It packs the 4 the float32 dataBuffer.
 	Note that DataBuffer is thread-safe, because it's managed via a JUCE AbstractFifo under the hood.
 */
 namespace Bonsai {
-	class OSCServer 
+
+
+	class OSCServer
 		: public osc::OscPacketListener
 	{
 	public:
 
 		/** Constructor */
-		OSCServer(int port, String address, DataBuffer* dataBuffer, bool messageHasTimestamp, int messageNumValues);
+		OSCServer(int port, String address, DataBuffer* dataBuffer, bool messageHasTimestamp, int messageNumValues, QualityInfo& qualityInfo_);
 
 		/** Destructor*/
 		~OSCServer();
@@ -58,7 +61,7 @@ namespace Bonsai {
 
 	protected:
 		/** OscPacketListener method*/
-		virtual void ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName&);
+		virtual void ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName&) override;
 
 	private:
 		const int port;
@@ -68,8 +71,12 @@ namespace Bonsai {
 		const size_t messageNumValues;
 		double firstTimestamp; // see readme for info on timestamp hackiness
 
+        QualityInfo& qualityInfo;
+
 		int64 nSamples;
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OSCServer);
+
+
 	};
 
 }
