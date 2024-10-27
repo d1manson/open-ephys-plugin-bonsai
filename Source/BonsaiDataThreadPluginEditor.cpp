@@ -95,15 +95,15 @@ namespace Bonsai {
 
         RectangleList<int> rectsGreen{};
         RectangleList<int> rectsRed{};
-
+        RectangleList<int> rectsWhite{};
 
         {
             const ScopedLock sl(qualityInfo.lock); // when reading from qualityInfo, need to lock it
 
-            if(qualityInfo.buffer.size() > 0){
+            if(qualityInfo.enabled){
 
                 int currentBlock = qualityInfo.bufferStartIdx / qualityInfo.sampleRate;
-                int cellHeight = (height - margin*2) / qualityInfo.sampleRate;
+                int cellHeight = std::max(1, (height - margin*2) / qualityInfo.sampleRate);
 
                 for(int i=0; i<qualityInfo.buffer.size(); i++){
                     int block = i / qualityInfo.sampleRate;
@@ -113,26 +113,41 @@ namespace Bonsai {
                         continue; // ignore the tail end of the buffer
                     }
 
-                    auto w  = colWidth - margin;
-                    auto h = cellHeight - margin;
-                    auto y = margin + row * cellHeight;
-                    auto x = margin + ((nSeconds + block - currentBlock) % nSeconds) * colWidth;
                     auto v = qualityInfo.buffer[i];
 
-                    // dummy display logic for now
-                    if(i >= qualityInfo.bufferStartIdx){
-                        rectsGreen.add(x, y, w, h);
-                    } else {
-                        rectsRed.add(x, y, w, h);
+
+                    Rectangle<int> rect{
+                        margin + (block == currentBlock ? nSeconds -1 : (nSeconds -1 + block - currentBlock) % nSeconds) * colWidth,
+                        height - margin - (row + 1) * cellHeight,
+                        colWidth,
+                        cellHeight};
+
+                    if(v.dropped_super_early){
+                        Rectangle<int> rect2 = rect;
+                        rect2.setWidth(1);
+                        rectsRed.addWithoutMerging(rect2);
+                    }
+
+                    if(v.filled_too_late){
+                        rectsWhite.addWithoutMerging(rect);
+                    } else if(v.used_value){
+                        int reducedWidth = colWidth / 4 * v.error_size;
+                        rect.setWidth(colWidth - reducedWidth);
+                        rect.setX(rect.getX() + v.error_is_negative * reducedWidth);
+                        rectsGreen.addWithoutMerging(rect);
                     }
                 }
             }
+
         }
 
         g.fillAll(Colours::grey);
 
         g.setColour(Colours::green);
         g.fillRectList(rectsGreen);
+
+        g.setColour(Colours::white);
+        g.fillRectList(rectsWhite);
 
         g.setColour(Colours::red);
         g.fillRectList(rectsRed);
