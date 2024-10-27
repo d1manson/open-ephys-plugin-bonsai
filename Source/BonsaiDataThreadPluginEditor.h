@@ -33,18 +33,18 @@ namespace Bonsai {
 
     class OSCServer;
 
-    class SampleProblemsComponent : public Component {
+    class SampleQualityComponent : public Component {
     public:
-        SampleProblemsComponent();
-        ~SampleProblemsComponent();
-        std::vector<BonsaiSampleProblems> buffer;
+        SampleQualityComponent();
+        ~SampleQualityComponent();
+        std::vector<BonsaiSampleQuality> buffer;
         size_t bufferIndex = 0;
 
         void paint(Graphics& g) override;
 
     private:
         /** Generates an assertion if this class leaks */
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SampleProblemsComponent);
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SampleQualityComponent);
     };
 
 
@@ -92,11 +92,11 @@ namespace Bonsai {
 
 		AsyncUpdateSignalChain asyncUpdateSignalChain = { this };
 
-        /* lock is used to guard access to the server pointer. sampleProblemsComponent needs
-          its buffer updated by server.copyBuffer() */
+        /* lock is used to guard access to the server pointer. sampleQualityComponent needs
+          its buffer updated by server.copyQualityBuffer() */
         CriticalSection lock;
         OSCServer* server = nullptr;
-        SampleProblemsComponent sampleProblemsComponent = {};
+        SampleQualityComponent sampleQualityComponent = {};
 
     };
 

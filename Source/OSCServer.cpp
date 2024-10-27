@@ -15,7 +15,7 @@ namespace Bonsai {
         }
 
         if(messageHasTimestamp){
-            buffer.resize(10 * sampleRate + 1);
+            qualityBuffer.resize(10 * sampleRate + 1);
         }
 
         LOGC("Creating OSC server - Port:", port, " Address:", address);
@@ -35,15 +35,15 @@ namespace Bonsai {
         stop();
     }
 
-    void OSCServer::stepBuffer(){
-        bufferWriteIdx = (bufferWriteIdx + 1) % buffer.size();
-        buffer[bufferWriteIdx] = {};
+    void OSCServer::stepQualityBuffer(){
+        qualityBufferIdx = (qualityBufferIdx + 1) % qualityBuffer.size();
+        qualityBuffer[qualityBufferIdx] = {};
     }
 
-    void OSCServer::copyBuffer(std::vector<BonsaiSampleProblems>& buffer_, size_t& startIndex_){
+    void OSCServer::copyQualityBuffer(std::vector<BonsaiSampleQuality>& qualityBuffer_, size_t& startIndex_){
         const ScopedLock sl(lock);
-        buffer_.assign(buffer.begin(), buffer.end());
-        startIndex_ = (bufferWriteIdx + 1) % buffer.size();
+        qualityBuffer_.assign(qualityBuffer.begin(), qualityBuffer.end());
+        startIndex_ = (qualityBufferIdx + 1) % qualityBuffer.size();
     }
 
     void OSCServer::ProcessMessage(const osc::ReceivedMessage& receivedMessage,
@@ -82,7 +82,7 @@ namespace Bonsai {
                     double error = (timestamp - firstTimestamp) * sampleRate - nSamples;
 
                     if (error < -0.5) {
-                        buffer[bufferWriteIdx].dropped_super_early = 1;
+                        qualityBuffer[qualityBufferIdx].dropped_super_early = 1;
                         return; // more than 50% too early, drop sample entirely
                     }
                     if (error > 1000){
@@ -92,22 +92,22 @@ namespace Bonsai {
                     }
                     if (error > 0.5){
                         // this sample is too late, fill the gap with 1 or more nan-timestamped / zero valued samples
-                        timestamp = std::nan("");
                         size_t filled_samples = static_cast<int>(std::ceil(error));
-                        std::vector<float> zeros(messageNumValues * filled_samples, 0.0f);
-                        dataBuffer->addToBuffer(zeros.data(), &nSamples, &timestamp, &eventCode, filled_samples, 1);
-                        while (error > 0.5) {
-                            nSamples++;
-                            buffer[bufferWriteIdx].filled_too_late = 1;
-                            stepBuffer();
-                            error -= 1;
+                        std::vector<float> vals_filled(messageNumValues * filled_samples, 0.0f);
+                        for (size_t i=0; i < filled_samples; i++) {
+                            vals_filled[i*messageNumValues + 0] = std::nan("");
+                            qualityBuffer[qualityBufferIdx].filled_too_late = 1;
+                            stepQualityBuffer();
                         }
+                        dataBuffer->addToBuffer(vals_filled.data(), &nSamples, &timestamp, &eventCode, filled_samples, 1);
+                        nSamples += filled_samples;
+                        error -= filled_samples;
                     }
 
-                    buffer[bufferWriteIdx].used_value = 1;
-                    buffer[bufferWriteIdx].error_is_negative = error < 0;
-                    buffer[bufferWriteIdx].error_size = (error < -0.1 || error > 0.1) + (error < -0.25 || error > 0.25);
-                    stepBuffer();
+                    qualityBuffer[qualityBufferIdx].used_value = 1;
+                    qualityBuffer[qualityBufferIdx].error_is_negative = error < 0;
+                    qualityBuffer[qualityBufferIdx].error_size = (error < -0.1 || error > 0.1) + (error < -0.25 || error > 0.25);
+                    stepQualityBuffer();
                 }
 
                 vals[0] = timestamp - firstTimestamp;

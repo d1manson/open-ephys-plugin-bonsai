@@ -36,8 +36,8 @@ namespace Bonsai {
 		addTextBoxParameterEditor("Values", 100, 75);
 		addTextBoxParameterEditor("SampleRate", 190, 25);
 
-		sampleProblemsComponent.setBounds(190, 70, 82, 50);
-        addAndMakeVisible(&sampleProblemsComponent);
+		sampleQualityComponent.setBounds(190, 70, 82, 50);
+        addAndMakeVisible(&sampleQualityComponent);
         startTimer(50);
 		
 		// see note in header about being reactive to parameter changes
@@ -73,9 +73,9 @@ namespace Bonsai {
     void DataThreadPluginEditor::timerCallback(){
          const ScopedLock sl(lock);
          if(server != nullptr){
-            server->copyBuffer(sampleProblemsComponent.buffer, sampleProblemsComponent.bufferIndex);
+            server->copyQualityBuffer(sampleQualityComponent.buffer, sampleQualityComponent.bufferIndex);
          }
-         sampleProblemsComponent.repaint();
+         sampleQualityComponent.repaint();
     }
 
 	DataThreadPluginEditor::~DataThreadPluginEditor() {
@@ -91,11 +91,11 @@ namespace Bonsai {
 		}
 	}
 
-	SampleProblemsComponent::SampleProblemsComponent(){
+	SampleQualityComponent::SampleQualityComponent(){
 	}
-	SampleProblemsComponent::~SampleProblemsComponent(){
+	SampleQualityComponent::~SampleQualityComponent(){
     }
-    void SampleProblemsComponent::paint(Graphics& g){
+    void SampleQualityComponent::paint(Graphics& g){
         g.fillAll(Colours::black);
         g.setColour(Colours::white);
         g.drawText(String(bufferIndex), 10, 20, getWidth(), 20, Justification::centred);

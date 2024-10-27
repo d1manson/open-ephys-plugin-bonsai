@@ -46,7 +46,7 @@ namespace Bonsai {
   possible that both of these things happened, i.e. we dropped a prior sample that was super early but then had to fill
   the gap. If a sample does arrive within +-50% of the expected time we record the error.
 */
-struct BonsaiSampleProblems {
+struct BonsaiSampleQuality {
     uint8_t dropped_super_early: 1;
     uint8_t filled_too_late: 1;
     uint8_t used_value: 1; // filled_too_late=1 and used_value=1 are mutually exclusive
@@ -76,7 +76,7 @@ struct BonsaiSampleProblems {
 
 		bool IsBound() { return socket && socket->IsBound(); };
 
-        void copyBuffer(std::vector<BonsaiSampleProblems>& buffer_, size_t& startIndex_);
+        void copyQualityBuffer(std::vector<BonsaiSampleQuality>& qualityBuffer_, size_t& startIndex_);
 
 	protected:
 		/** OscPacketListener method*/
@@ -93,11 +93,11 @@ struct BonsaiSampleProblems {
         const double sampleRate;
 
         /* track every sample for 10s in a circular buffer. it's sized dynamically as it depends on sample rate
-           the BonsaiDataThreadPluginEditor can use copyBuffer() to get the buffer. */
+           the BonsaiDataThreadPluginEditor can use copyQualityBuffer() to get the buffer. */
         CriticalSection lock;
-        std::vector<BonsaiSampleProblems> buffer;
-        size_t bufferWriteIdx = 0;
-        void stepBuffer();
+        std::vector<BonsaiSampleQuality> qualityBuffer;
+        size_t qualityBufferIdx = 0;
+        void stepQualityBuffer();
 
         // TODO: should really track how long it's been since any data so we can show the gap building up
 
