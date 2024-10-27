@@ -26,22 +26,23 @@
 
 #include <EditorHeaders.h>
 #include <ProcessorHeaders.h>
-#include "OSCServer.h"
+#include "QualityInfo.h"
 
 namespace Bonsai {
 
 
-    class OSCServer;
-
-    class SampleQualityComponent : public Component {
+    class SampleQualityComponent : public Component, Timer {
     public:
-        SampleQualityComponent();
-        ~SampleQualityComponent();
-        std::vector<BonsaiSampleQuality> buffer;
-        size_t bufferIndex = 0;
-        int sampleRate = 0;
+        SampleQualityComponent(QualityInfo& qualityInfo_);
+        ~SampleQualityComponent() {};
+
+        QualityInfo& qualityInfo;
+
+        void timerCallback() override;
         void paint(Graphics& g) override;
 
+        constexpr static int width = 82;
+        constexpr static int height = 50;
     private:
         /** Generates an assertion if this class leaks */
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SampleQualityComponent);
@@ -73,11 +74,11 @@ namespace Bonsai {
 
 
 
-	class DataThreadPluginEditor : public GenericEditor, Label::Listener, Button::Listener, Timer
+	class DataThreadPluginEditor : public GenericEditor, Label::Listener, Button::Listener
 	{
 	public:
 		/** The class constructor, used to initialize any members. */
-		DataThreadPluginEditor(GenericProcessor* parentNode);
+		DataThreadPluginEditor(GenericProcessor* parentNode, QualityInfo& qualityInfo);
 
 		/** The class destructor, used to deallocate memory */
 		~DataThreadPluginEditor();
@@ -85,18 +86,11 @@ namespace Bonsai {
 		void labelTextChanged(Label*) override;
 		void buttonClicked(Button*)  override;
 
-        void timerCallback() override;
-        void setServer(OSCServer* server_);
-
 	private:
 
 		AsyncUpdateSignalChain asyncUpdateSignalChain = { this };
 
-        /* lock is used to guard access to the server pointer. sampleQualityComponent needs
-          its buffer updated by server.copyQualityBuffer() */
-        CriticalSection lock;
-        OSCServer* server = nullptr;
-        SampleQualityComponent sampleQualityComponent = {};
+        SampleQualityComponent sampleQualityComponent;
 
     };
 

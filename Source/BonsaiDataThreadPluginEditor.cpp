@@ -26,8 +26,8 @@
 
 
 namespace Bonsai {
-	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode)
-		: GenericEditor(parentNode)
+	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode, QualityInfo& qualityInfo)
+		: GenericEditor(parentNode), sampleQualityComponent(qualityInfo)
 	{
 		desiredWidth = 280;
 		addTextBoxParameterEditor("Address", 10, 75);
@@ -36,9 +36,8 @@ namespace Bonsai {
 		addTextBoxParameterEditor("Values", 100, 75);
 		addTextBoxParameterEditor("SampleRate", 190, 25);
 
-		sampleQualityComponent.setBounds(190, 70, 82, 50);
+		sampleQualityComponent.setBounds(190, 70, SampleQualityComponent::width, SampleQualityComponent::height);
         addAndMakeVisible(&sampleQualityComponent);
-        startTimer(5);
 		
 		// see note in header about being reactive to parameter changes
 		for (ParameterEditor* ed : parameterEditors) {
@@ -65,19 +64,6 @@ namespace Bonsai {
 		asyncUpdateSignalChain.triggerAsyncUpdate();
 	}
 
-    void DataThreadPluginEditor::setServer(OSCServer* server_){
-         const ScopedLock sl(lock);
-         server = server_;
-    }
-
-    void DataThreadPluginEditor::timerCallback(){
-         const ScopedLock sl(lock);
-         if(server != nullptr){
-            server->copyQualityBuffer(sampleQualityComponent.buffer, sampleQualityComponent.bufferIndex, sampleQualityComponent.sampleRate);
-         }
-         sampleQualityComponent.repaint();
-    }
-
 	DataThreadPluginEditor::~DataThreadPluginEditor() {
 		// see note in header about being reactive to parameter changes		
 		for (ParameterEditor* ed : parameterEditors) {
@@ -91,19 +77,66 @@ namespace Bonsai {
 		}
 	}
 
-	SampleQualityComponent::SampleQualityComponent(){
-	}
-	SampleQualityComponent::~SampleQualityComponent(){
+
+    SampleQualityComponent::SampleQualityComponent(QualityInfo& qualityInfo_):
+        qualityInfo(qualityInfo_) {
+            startTimer(5);
+    };
+
+    void SampleQualityComponent::timerCallback(){
+         repaint();
     }
+
     void SampleQualityComponent::paint(Graphics& g){
-        g.fillAll(Colours::black);
-        g.setColour(Colours::white);
+
+        constexpr int margin = 1;
+        constexpr int nSeconds = QualityInfo::bufferSeconds;
+        constexpr int colWidth = (width - margin * 2) / nSeconds;
+
+        RectangleList<int> rectsGreen{};
+        RectangleList<int> rectsRed{};
 
 
-        g.drawText(String(sampleRate) + " "  + String(bufferIndex), 10, 20, getWidth(), 20, Justification::centred);
-        /*for(int i=0; i<10; i++){
-            auto v = buffer[(bufferIndex + i) % buffer.size()];
-            g.drawText(String((bufferIndex + i) % buffer.size()), i*10, 20, getWidth(), 20, Justification::centred);
-        }*/
+        {
+            const ScopedLock sl(qualityInfo.lock); // when reading from qualityInfo, need to lock it
+
+            if(qualityInfo.buffer.size() > 0){
+
+                int currentBlock = qualityInfo.bufferStartIdx / qualityInfo.sampleRate;
+                int cellHeight = (height - margin*2) / qualityInfo.sampleRate;
+
+                for(int i=0; i<qualityInfo.buffer.size(); i++){
+                    int block = i / qualityInfo.sampleRate;
+                    int row = i % qualityInfo.sampleRate;
+
+                    if(block == currentBlock && i >= qualityInfo.bufferStartIdx){
+                        continue; // ignore the tail end of the buffer
+                    }
+
+                    auto w  = colWidth - margin;
+                    auto h = cellHeight - margin;
+                    auto y = margin + row * cellHeight;
+                    auto x = margin + ((nSeconds + block - currentBlock) % nSeconds) * colWidth;
+                    auto v = qualityInfo.buffer[i];
+
+                    // dummy display logic for now
+                    if(i >= qualityInfo.bufferStartIdx){
+                        rectsGreen.add(x, y, w, h);
+                    } else {
+                        rectsRed.add(x, y, w, h);
+                    }
+                }
+            }
+        }
+
+        g.fillAll(Colours::grey);
+
+        g.setColour(Colours::green);
+        g.fillRectList(rectsGreen);
+
+        g.setColour(Colours::red);
+        g.fillRectList(rectsRed);
+        //g.drawText(String(sampleRate) + " "  + String(bufferIndex), 10, 20, getWidth(), 20, Justification::centred);
+
     }
 }

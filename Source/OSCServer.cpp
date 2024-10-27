@@ -4,18 +4,15 @@
 namespace Bonsai {
     constexpr size_t maxMessageNumValues = 8;
 
-    OSCServer::OSCServer(int port_, String address_, DataBuffer* dataBuffer_, bool messageHasTimestamp_, int messageNumValues_, int sampleRate_) :
+    OSCServer::OSCServer(int port_, String address_, DataBuffer* dataBuffer_, bool messageHasTimestamp_,
+     int messageNumValues_, QualityInfo& qualityInfo_):
         port(port_), address(address_), dataBuffer(dataBuffer_), nSamples(0), messageHasTimestamp(messageHasTimestamp_),
-        messageNumValues(messageNumValues_), sampleRate(sampleRate_)
+        messageNumValues(messageNumValues_), qualityInfo(qualityInfo_)
     {
         
         if (messageNumValues > maxMessageNumValues) {
             LOGE("OSCServer only designed to support up to ", maxMessageNumValues, " values per message.");
             return;
-        }
-
-        if(messageHasTimestamp){
-            qualityBuffer.resize(10 * sampleRate);
         }
 
         LOGC("Creating OSC server - Port:", port, " Address:", address);
@@ -33,18 +30,6 @@ namespace Bonsai {
     OSCServer::~OSCServer()
     {
         stop();
-    }
-
-    void OSCServer::stepQualityBuffer(){
-        qualityBufferIdx = (qualityBufferIdx + 1) % qualityBuffer.size();
-        qualityBuffer[qualityBufferIdx] = {};
-    }
-
-    void OSCServer::copyQualityBuffer(std::vector<BonsaiSampleQuality>& qualityBuffer_, size_t& startIndex_, int& sampleRate_){
-        const ScopedLock sl(lock);
-        qualityBuffer_.assign(qualityBuffer.begin(), qualityBuffer.end());
-        startIndex_ = (qualityBufferIdx + 1) % qualityBuffer.size();
-        sampleRate_ = sampleRate;
     }
 
     void OSCServer::ProcessMessage(const osc::ReceivedMessage& receivedMessage,
@@ -78,12 +63,12 @@ namespace Bonsai {
                 if (nSamples == 0) {
                     firstTimestamp = timestamp;
                 } else {
-                    const ScopedLock sl(lock);
+                    const ScopedLock sl(qualityInfo.lock);
 
-                    double error = (timestamp - firstTimestamp) * sampleRate - nSamples;
+                    double error = (timestamp - firstTimestamp) * qualityInfo.sampleRate - nSamples;
 
                     if (error < -0.5) {
-                        qualityBuffer[qualityBufferIdx].dropped_super_early = 1;
+                        qualityInfo.bufferWritePtr->dropped_super_early = 1;
                         return; // more than 50% too early, drop sample entirely
                     }
                     if (error > 1000){
@@ -97,18 +82,18 @@ namespace Bonsai {
                         std::vector<float> vals_filled(messageNumValues * filled_samples, 0.0f);
                         for (size_t i=0; i < filled_samples; i++) {
                             vals_filled[i*messageNumValues + 0] = std::nan("");
-                            qualityBuffer[qualityBufferIdx].filled_too_late = 1;
-                            stepQualityBuffer();
+                            qualityInfo.bufferWritePtr->filled_too_late = 1;
+                            qualityInfo.stepWrite(sl);
                         }
                         dataBuffer->addToBuffer(vals_filled.data(), &nSamples, &timestamp, &eventCode, filled_samples, 1);
                         nSamples += filled_samples;
                         error -= filled_samples;
                     }
 
-                    qualityBuffer[qualityBufferIdx].used_value = 1;
-                    qualityBuffer[qualityBufferIdx].error_is_negative = error < 0;
-                    qualityBuffer[qualityBufferIdx].error_size = (error < -0.1 || error > 0.1) + (error < -0.25 || error > 0.25);
-                    stepQualityBuffer();
+                    qualityInfo.bufferWritePtr->used_value = 1;
+                    qualityInfo.bufferWritePtr->error_is_negative = error < 0;
+                    qualityInfo.bufferWritePtr->error_size = (error < -0.1 || error > 0.1) + (error < -0.25 || error > 0.25);
+                    qualityInfo.stepWrite(sl);
                 }
 
                 vals[0] = timestamp - firstTimestamp;

@@ -71,18 +71,23 @@ namespace Bonsai {
             return false;
         }
         sourceBuffers.getFirst()->clear();
+
+        bool hasTimestamp = sourceNode->getParameter("Timestamp")->getValue();
+        int sampleRate = sourceNode->getParameter("SampleRate")->getValue();
+        qualityInfo.initialise(sampleRate, hasTimestamp);
+
         server = std::make_unique<OSCServer>(
             sourceNode->getParameter("Port")->getValue(),
             sourceNode->getParameter("Address")->getValue(),
             sourceBuffers.getFirst(),
-            sourceNode->getParameter("Timestamp")->getValue(),
+            hasTimestamp,
             sourceNode->getParameter("Values")->getValue(),
-            sourceNode->getParameter("SampleRate")->getValue()
+            qualityInfo
         );
+
         if (!server || !server->IsBound()) {
             return false;
         }
-        reinterpret_cast<DataThreadPluginEditor*>(sourceNode->getEditor())->setServer(server.get());
         startThread(); // will call run() on this class, which in turn calls server->run()
         return true;
     }
@@ -107,7 +112,6 @@ namespace Bonsai {
         if (!stopThread(500)) {
             return false;
         }
-        reinterpret_cast<DataThreadPluginEditor*>(sourceNode->getEditor())->setServer(nullptr);
         server = nullptr;
         return true;
     }
@@ -180,7 +184,7 @@ namespace Bonsai {
 
     std::unique_ptr<GenericEditor> DataThreadPlugin::createEditor(SourceNode* sn)
     {
-        std::unique_ptr<DataThreadPluginEditor> editor = std::make_unique<DataThreadPluginEditor>(sn);
+        std::unique_ptr<DataThreadPluginEditor> editor = std::make_unique<DataThreadPluginEditor>(sn, qualityInfo);
         return editor;
 
     }
