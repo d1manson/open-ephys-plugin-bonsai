@@ -7,7 +7,7 @@ import random
 from pythonosc import udp_client, osc_message_builder
 import math
 
-ip = "localhost"
+ip = "127.0.0.1"
 port = 27020
 address = "/bonsai"
 frequency = 50 # Hz
