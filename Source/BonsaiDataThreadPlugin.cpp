@@ -113,6 +113,7 @@ namespace Bonsai {
             return false;
         }
         server = nullptr;
+        sourceBuffers.getFirst()->clear();
         return true;
     }
 
