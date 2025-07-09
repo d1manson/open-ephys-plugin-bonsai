@@ -30,53 +30,21 @@ namespace Bonsai {
 		: GenericEditor(parentNode), sampleQualityComponent(qualityInfo)
 	{
         this->thread = thread;
-
-		desiredWidth = 280;
-		addTextBoxParameterEditor(Parameter::GLOBAL_SCOPE, "Address", 10, 75);
-		addTextBoxParameterEditor(Parameter::GLOBAL_SCOPE, "Port", 10, 25);
-		addToggleParameterEditor(Parameter::GLOBAL_SCOPE, "Timestamp", 100, 25);
-		addTextBoxParameterEditor(Parameter::GLOBAL_SCOPE, "Values", 100, 75);
-		addTextBoxParameterEditor(Parameter::GLOBAL_SCOPE, "SampleRate", 190, 25);
-
-		sampleQualityComponent.setBounds(190, 70, SampleQualityComponent::width, SampleQualityComponent::height);
+        desiredWidth = 260;
+		addTextBoxParameterEditor(Parameter::PROCESSOR_SCOPE, "address", 10, 25);
+		addTextBoxParameterEditor(Parameter::PROCESSOR_SCOPE, "port", 10, 45);
+		addToggleParameterEditor(Parameter::PROCESSOR_SCOPE, "timestamp", 10, 65);
+		addTextBoxParameterEditor(Parameter::PROCESSOR_SCOPE, "values", 10, 85);
+		addTextBoxParameterEditor(Parameter::PROCESSOR_SCOPE, "sample_rate", 10, 105);
+		sampleQualityComponent.setBounds(175, 65, SampleQualityComponent::width, SampleQualityComponent::height);
         addAndMakeVisible(&sampleQualityComponent);
 		
-		// see note in header about being reactive to parameter changes
-		for (ParameterEditor* ed : parameterEditors) {
-			for (Component* c : ed->getChildren()) {
-				if (Label* label = dynamic_cast<Label*>(c)) {
-					label->addListener(this);
-				} else if (ToggleButton* button = dynamic_cast<ToggleButton*>(c)) {
-					button->addListener(this);
-				}
-
-			}
-		}
 		
 	}
 
 
-	void DataThreadPluginEditor::labelTextChanged(Label* src) {
-		// see note in header about being reactive to parameter changes
-		asyncUpdateSignalChain.triggerAsyncUpdate();
-	}
-
-	void DataThreadPluginEditor::buttonClicked(Button* src) {
-		// see note in header about being reactive to parameter changes
-		asyncUpdateSignalChain.triggerAsyncUpdate();
-	}
-
 	DataThreadPluginEditor::~DataThreadPluginEditor() {
-		// see note in header about being reactive to parameter changes		
-		for (ParameterEditor* ed : parameterEditors) {
-			for (Component* c : ed->getChildren()) {
-				if (Label* label = dynamic_cast<Label*>(c)) {
-					label->removeListener(this);
-				} else if (ToggleButton* button = dynamic_cast<ToggleButton*>(c)) {
-					button->removeListener(this);
-				}
-			}
-		}
+
 	}
 
 

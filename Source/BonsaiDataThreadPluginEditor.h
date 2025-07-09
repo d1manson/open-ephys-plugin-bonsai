@@ -51,31 +51,9 @@ namespace Bonsai {
 
 
 
-	// Note on being reactive to parameter changes..
-	// Something about the DataThread class doesn't automatically support updating the signal chain when a parameter is changed.
-	// But after a lot of faff, I found a way to add listeners to the Label/ToggleButon instances that are the parameter editors, and then
-	// I also found that you can't call CoreServices::updateSignalChain(this) immediately (it seems to stop the edit actually happening).
-	// However, it seems that you can make that call via an AsyncUpdater. So as a result, the code includes:
-	//	a) logic in the editor constructor to register listners on all the paramater labels
-	//  b) logic in the editor destructor ro remove those listners (not entirely sure if that's strictly neccessary, but it's recommended somewhere).
-	//  c) a AsyncUpdateSignalChain class that can hold a reference to the editor and make the call.
-	//  d) an instance of that class on the editor
-	//  e) an additional base class on the editor, Label::Listener, and an implementation of labelTextChanged method which invokes the asyncUpdateSignalChain,
-	//    and similar for Buttons (toggle buttons).
-	// It's possible the SourceNode will be changed to make this easier somehow in future, in which case all that can be deleted!
-	class AsyncUpdateSignalChain : public AsyncUpdater {
-	public:
-		AsyncUpdateSignalChain(GenericEditor* editor_) : editor(editor_) {};
-		~AsyncUpdateSignalChain() { editor = nullptr; };
-		void handleAsyncUpdate() { CoreServices::updateSignalChain(editor); };
-	private:
-		GenericEditor* editor;
-	};
 
 
-
-
-	class DataThreadPluginEditor : public GenericEditor, Label::Listener, Button::Listener
+	class DataThreadPluginEditor : public GenericEditor
 	{
 	public:
 		/** The class constructor, used to initialize any members. */
@@ -84,15 +62,10 @@ namespace Bonsai {
 		/** The class destructor, used to deallocate memory */
 		~DataThreadPluginEditor();
 
-		void labelTextChanged(Label*) override;
-		void buttonClicked(Button*)  override;
-
 	private:
 
 		/** A pointer to the underlying DataThreadPlugin */
     	DataThreadPlugin* thread;
-
-		AsyncUpdateSignalChain asyncUpdateSignalChain = { this };
 
         SampleQualityComponent sampleQualityComponent;
 
