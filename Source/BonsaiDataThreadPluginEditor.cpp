@@ -26,15 +26,17 @@
 
 
 namespace Bonsai {
-	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode, QualityInfo& qualityInfo)
+	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode, DataThreadPlugin* thread, QualityInfo& qualityInfo)
 		: GenericEditor(parentNode), sampleQualityComponent(qualityInfo)
 	{
+        this->thread = thread;
+
 		desiredWidth = 280;
-		addTextBoxParameterEditor("Address", 10, 75);
-		addTextBoxParameterEditor("Port", 10, 25);
-		addCheckBoxParameterEditor("Timestamp", 100, 25);
-		addTextBoxParameterEditor("Values", 100, 75);
-		addTextBoxParameterEditor("SampleRate", 190, 25);
+		addTextBoxParameterEditor(Parameter::GLOBAL_SCOPE, "Address", 10, 75);
+		addTextBoxParameterEditor(Parameter::GLOBAL_SCOPE, "Port", 10, 25);
+		addToggleParameterEditor(Parameter::GLOBAL_SCOPE, "Timestamp", 100, 25);
+		addTextBoxParameterEditor(Parameter::GLOBAL_SCOPE, "Values", 100, 75);
+		addTextBoxParameterEditor(Parameter::GLOBAL_SCOPE, "SampleRate", 190, 25);
 
 		sampleQualityComponent.setBounds(190, 70, SampleQualityComponent::width, SampleQualityComponent::height);
         addAndMakeVisible(&sampleQualityComponent);
@@ -81,7 +83,7 @@ namespace Bonsai {
     SampleQualityComponent::SampleQualityComponent(QualityInfo& qualityInfo_):
         qualityInfo(qualityInfo_) {
             startTimer(5);
-    };
+    }
 
     void SampleQualityComponent::timerCallback(){
          repaint();

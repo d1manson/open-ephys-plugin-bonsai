@@ -44,7 +44,7 @@ extern "C" EXPORT void getLibInfo(Plugin::LibraryInfo* info)
 	The GUI refuses to load plugins with mismatched API versions */
 	info->apiVersion = PLUGIN_API_VER;
 	info->name = "Bonsai Source"; 
-	info->libVersion = "0.1.0";
+	info->libVersion = "1.0.0";
 	info->numPlugins = NUM_PLUGINS;
 }
 
@@ -54,7 +54,7 @@ extern "C" EXPORT int getPluginInfo(int index, Plugin::PluginInfo* info)
 	{
 	case 0:
 
-		info->type = Plugin::Type::DATA_THREAD;
+		info->type = Plugin::DATA_THREAD;
 		info->dataThread.name = "Bonsai Source";
 		info->dataThread.creator = &createDataThread<Bonsai::DataThreadPlugin>; 
 		break;

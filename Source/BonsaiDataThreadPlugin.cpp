@@ -34,20 +34,30 @@ namespace Bonsai {
     constexpr char DEFAULT_OSC_ADDRESS[] = "/bonsai";
 
 
+
     DataThreadPlugin::DataThreadPlugin(SourceNode* sn) : DataThread(sn), sourceNode(sn)
     {
-        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Port", "Bonsai OSC port", DEFAULT_OSC_PORT, 1024, 49151, true);
-        sourceNode->addStringParameter(Parameter::GLOBAL_SCOPE, "Address", "Bonsai source OSC address", DEFAULT_OSC_ADDRESS, true);
-        sourceNode->addBooleanParameter(Parameter::GLOBAL_SCOPE, "Timestamp", "First value within message is timestamp", true, true);
-        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Values", "Number of values within messages (after timestamp)", 6, 1, 8, true);
-        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "SampleRate", "Sample Rate (Hz) to show on data stream.", 50, 1, 1000, true);
     }
 
 
     DataThreadPlugin::~DataThreadPlugin()
-    {
-       
+    {  
     }
+
+    void DataThreadPlugin::registerParameters()
+    {
+        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Port", "Port", "Bonsai OSC port", DEFAULT_OSC_PORT, 1024, 49151, true);
+        sourceNode->addStringParameter(Parameter::GLOBAL_SCOPE, "Address", "Address", "Bonsai source OSC address", DEFAULT_OSC_ADDRESS, true);
+        sourceNode->addBooleanParameter(Parameter::GLOBAL_SCOPE, "Timestamp", "Timestamp", "First value within message is timestamp", true, true);
+        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Values", "Values", "Number of values within messages (after timestamp)", 6, 1, 8, true);
+        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "SampleRate","Sample Rate", "Sample Rate (Hz) to show on data stream.", 50, 1, 1000, true);
+    }
+    
+    void DataThreadPlugin::parameterValueChanged (Parameter* parameter)
+    {
+        // Handle parameter value changes here (e.g. update settings)
+    }
+
 
 
     bool DataThreadPlugin::updateBuffer()
@@ -185,20 +195,18 @@ namespace Bonsai {
 
     std::unique_ptr<GenericEditor> DataThreadPlugin::createEditor(SourceNode* sn)
     {
-        std::unique_ptr<DataThreadPluginEditor> editor = std::make_unique<DataThreadPluginEditor>(sn, qualityInfo);
+        std::unique_ptr<DataThreadPluginEditor> editor = std::make_unique<DataThreadPluginEditor>(sn, this, qualityInfo);
         return editor;
 
     }
 
-    void DataThreadPlugin::handleBroadcastMessage(String msg)
+
+    void DataThreadPlugin::handleBroadcastMessage (const String& msg, const int64 messageTimestmpMilliseconds)
     {
-
-
     }
 
-    String DataThreadPlugin::handleConfigMessage(String msg)
+    String DataThreadPlugin::handleConfigMessage (const String& msg)
     {
-
         return "";
     }
 

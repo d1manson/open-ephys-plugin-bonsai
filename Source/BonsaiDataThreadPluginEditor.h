@@ -27,6 +27,7 @@
 #include <EditorHeaders.h>
 #include <ProcessorHeaders.h>
 #include "QualityInfo.h"
+#include "BonsaiDataThreadPlugin.h"
 
 namespace Bonsai {
 
@@ -78,7 +79,7 @@ namespace Bonsai {
 	{
 	public:
 		/** The class constructor, used to initialize any members. */
-		DataThreadPluginEditor(GenericProcessor* parentNode, QualityInfo& qualityInfo);
+		DataThreadPluginEditor (GenericProcessor* parentNode, DataThreadPlugin* thread, QualityInfo& qualityInfo);
 
 		/** The class destructor, used to deallocate memory */
 		~DataThreadPluginEditor();
@@ -87,6 +88,9 @@ namespace Bonsai {
 		void buttonClicked(Button*)  override;
 
 	private:
+
+		/** A pointer to the underlying DataThreadPlugin */
+    	DataThreadPlugin* thread;
 
 		AsyncUpdateSignalChain asyncUpdateSignalChain = { this };
 
