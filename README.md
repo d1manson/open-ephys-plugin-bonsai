@@ -1,6 +1,8 @@
 # Open Ephys (v1) Plugin - Bonsai
 
-![image](https://github.com/user-attachments/assets/25d66467-8fc4-40d6-a082-40c90fecc8d6)
+
+<img width="291" height="157" alt="Screenshot 2025-07-11 at 00 42 37" src="https://github.com/user-attachments/assets/2f920dce-3caf-465e-9eb0-74358f9c16b2" />
+
 
 This runs an OSC UDP Server (using an open ephys DataThread plugin). The Server expects messages that optionally start with a timestamp value, and then contain 1-8 float values
 (you must specify the exact number of values in the interface and specify if there is a timetamp first or not). Each of the float values is given its own continuous channel.
@@ -23,6 +25,10 @@ The intention is that the data is coming from a camera via Bonsai, with the floa
 
 WARNING: this is not yet going to allow for any kind of precision in terms of timing latency relative to other data sources, it only provides internal consistency.
 
+## Installing
+
+This plugin is not part of the offical set of Open Ephys plugins, but you can easily install it yourself by downloading the `.dll` file from the [latest release](https://github.com/d1manson/open-ephys-plugin-bonsai/releases)
+and then moving it into your `C:\Program Files\Open Ephys\plugins` folder (Mac/Linux binaries not provided here currently).
 
 ## Development
 
