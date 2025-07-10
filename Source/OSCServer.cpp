@@ -80,7 +80,7 @@ namespace Bonsai {
                         // this sample is too late, fill the gap with 1 or more nan-valued samples
                         size_t filled_samples = static_cast<int>(std::ceil(error));
                         std::vector<float> vals_filled(messageNumValues * filled_samples, std::nanf(""));
-                        dataBuffer->addToBuffer(vals_filled.data(), &nSamples, &timestamp, &eventCode, filled_samples, 1);
+                        dataBuffer->addToBuffer(vals_filled.data(), &nSamples, &timestamp, &eventCode, filled_samples);
                         nSamples += filled_samples;
                         for (size_t i=0; i < filled_samples; i++) {
                             qualityInfo.bufferWritePtr->filled_too_late = 1;
@@ -106,7 +106,7 @@ namespace Bonsai {
                 }
             }
             
-            dataBuffer->addToBuffer(vals, &nSamples, &timestamp, &eventCode, 1, 1);
+            dataBuffer->addToBuffer(vals, &nSamples, &timestamp, &eventCode, 1);
             nSamples++;
             
         } catch (osc::Exception& e) {

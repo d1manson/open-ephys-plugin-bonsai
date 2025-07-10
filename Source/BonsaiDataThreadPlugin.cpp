@@ -34,19 +34,28 @@ namespace Bonsai {
     constexpr char DEFAULT_OSC_ADDRESS[] = "/bonsai";
 
 
+
     DataThreadPlugin::DataThreadPlugin(SourceNode* sn) : DataThread(sn), sourceNode(sn)
     {
-        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Port", "Bonsai OSC port", DEFAULT_OSC_PORT, 1024, 49151, true);
-        sourceNode->addStringParameter(Parameter::GLOBAL_SCOPE, "Address", "Bonsai source OSC address", DEFAULT_OSC_ADDRESS, true);
-        sourceNode->addBooleanParameter(Parameter::GLOBAL_SCOPE, "Timestamp", "First value within message is timestamp", true, true);
-        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "Values", "Number of values within messages (after timestamp)", 6, 1, 8, true);
-        sourceNode->addIntParameter(Parameter::GLOBAL_SCOPE, "SampleRate", "Sample Rate (Hz) to show on data stream.", 50, 1, 1000, true);
     }
 
 
     DataThreadPlugin::~DataThreadPlugin()
+    {  
+    }
+
+    void DataThreadPlugin::registerParameters()
     {
-       
+        addIntParameter(Parameter::PROCESSOR_SCOPE, "port", "Port", "Bonsai OSC port", DEFAULT_OSC_PORT, 1024, 49151, true);
+        addStringParameter(Parameter::PROCESSOR_SCOPE, "address", "Address", "Bonsai source OSC address", DEFAULT_OSC_ADDRESS, true);
+        addBooleanParameter(Parameter::PROCESSOR_SCOPE, "timestamp", "Timestamp", "First value within message is timestamp", true, true);
+        addIntParameter(Parameter::PROCESSOR_SCOPE, "values", "Values", "Number of values within messages (after timestamp)", 6, 1, 8, true);
+        addIntParameter(Parameter::PROCESSOR_SCOPE, "sample_rate","Sample Rate", "Sample Rate (Hz) to show on data stream.", 50, 1, 1000, true);
+    }
+    
+    void DataThreadPlugin::parameterValueChanged (Parameter* parameter)
+    {
+        CoreServices::updateSignalChain(sourceNode);
     }
 
 
@@ -72,16 +81,16 @@ namespace Bonsai {
         }
         sourceBuffers.getFirst()->clear();
 
-        bool hasTimestamp = sourceNode->getParameter("Timestamp")->getValue();
-        int sampleRate = sourceNode->getParameter("SampleRate")->getValue();
+        bool hasTimestamp = getParameter("timestamp")->getValue();
+        int sampleRate = getParameter("sample_rate")->getValue();
         qualityInfo.initialise(sampleRate, hasTimestamp);
 
         server = std::make_unique<OSCServer>(
-            sourceNode->getParameter("Port")->getValue(),
-            sourceNode->getParameter("Address")->getValue(),
+            getParameter("port")->getValue(),
+            getParameter("address")->getValue(),
             sourceBuffers.getFirst(),
             hasTimestamp,
-            sourceNode->getParameter("Values")->getValue(),
+            getParameter("values")->getValue(),
             qualityInfo
         );
 
@@ -134,7 +143,7 @@ namespace Bonsai {
         sourceBuffers.clear();
         continuousChannels->clear();
 
-        int sampleRate = sourceNode->getParameter("SampleRate")->getValue();
+        int sampleRate = getParameter("sample_rate")->getValue();
         DataStream* stream = new DataStream({
            "bonsai",
            "float32 values from bonsai over UDP/OSC",
@@ -144,8 +153,8 @@ namespace Bonsai {
 
         sourceStreams->add(stream);
 
-        int messageNumValues = sourceNode->getParameter("Values")->getValue();
-        bool hasTimestamp = sourceNode->getParameter("Timestamp")->getValue();
+        int messageNumValues = getParameter("values")->getValue();
+        bool hasTimestamp = getParameter("timestamp")->getValue();
 
         if (hasTimestamp) {
             messageNumValues++;
@@ -185,20 +194,18 @@ namespace Bonsai {
 
     std::unique_ptr<GenericEditor> DataThreadPlugin::createEditor(SourceNode* sn)
     {
-        std::unique_ptr<DataThreadPluginEditor> editor = std::make_unique<DataThreadPluginEditor>(sn, qualityInfo);
+        std::unique_ptr<DataThreadPluginEditor> editor = std::make_unique<DataThreadPluginEditor>(sn, this, qualityInfo);
         return editor;
 
     }
 
-    void DataThreadPlugin::handleBroadcastMessage(String msg)
+
+    void DataThreadPlugin::handleBroadcastMessage (const String& msg, const int64 messageTimestmpMilliseconds)
     {
-
-
     }
 
-    String DataThreadPlugin::handleConfigMessage(String msg)
+    String DataThreadPlugin::handleConfigMessage (const String& msg)
     {
-
         return "";
     }
 

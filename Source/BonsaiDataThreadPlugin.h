@@ -80,11 +80,12 @@ namespace Bonsai {
         /** Create the DataThread custom editor */
         std::unique_ptr<GenericEditor> createEditor(SourceNode* sn) override;
 
-        // ** Allows the DataThread plugin to respond to messages sent by other processors */
-        void handleBroadcastMessage(String msg) override;
 
-        // ** Allows the DataThread plugin to handle a config message while acquisition is not active. */
-        String handleConfigMessage(String msg) override;
+        /** Allows the DataThread plugin to respond to messages sent by other processors */
+        void handleBroadcastMessage (const String& msg, const int64 messageTimeMilliseconds) override;
+
+        /** Allows the DataThread plugin to handle a config message while acquisition is not active */
+        String handleConfigMessage (const String& msg) override;
 
         void run() override;
 
@@ -92,15 +93,18 @@ namespace Bonsai {
            for simplicity. */
         QualityInfo qualityInfo;
 
+        /** Registers parameters to the DataThread */
+        void registerParameters() override;
 
-    private:
-        std::unique_ptr<OSCServer> server;
+        /** Called when a parameter value is updated, to allow plugin-specific responses */    
+        void parameterValueChanged (Parameter* parameter) override;
 
-        SourceNode* sourceNode;
+private:
+    std::unique_ptr<OSCServer> server;
 
+    SourceNode* sourceNode;
 
+};
 
-    };
-
-}
+} // namespace Bonsai
 #endif

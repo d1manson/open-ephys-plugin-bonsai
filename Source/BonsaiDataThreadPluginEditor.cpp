@@ -26,62 +26,32 @@
 
 
 namespace Bonsai {
-	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode, QualityInfo& qualityInfo)
+	DataThreadPluginEditor::DataThreadPluginEditor(GenericProcessor* parentNode, DataThreadPlugin* thread, QualityInfo& qualityInfo)
 		: GenericEditor(parentNode), sampleQualityComponent(qualityInfo)
 	{
-		desiredWidth = 280;
-		addTextBoxParameterEditor("Address", 10, 75);
-		addTextBoxParameterEditor("Port", 10, 25);
-		addCheckBoxParameterEditor("Timestamp", 100, 25);
-		addTextBoxParameterEditor("Values", 100, 75);
-		addTextBoxParameterEditor("SampleRate", 190, 25);
-
-		sampleQualityComponent.setBounds(190, 70, SampleQualityComponent::width, SampleQualityComponent::height);
+        this->thread = thread;
+        desiredWidth = 260;
+		addTextBoxParameterEditor(Parameter::PROCESSOR_SCOPE, "address", 10, 25);
+		addTextBoxParameterEditor(Parameter::PROCESSOR_SCOPE, "port", 10, 45);
+		addToggleParameterEditor(Parameter::PROCESSOR_SCOPE, "timestamp", 10, 65);
+		addTextBoxParameterEditor(Parameter::PROCESSOR_SCOPE, "values", 10, 85);
+		addTextBoxParameterEditor(Parameter::PROCESSOR_SCOPE, "sample_rate", 10, 105);
+		sampleQualityComponent.setBounds(175, 65, SampleQualityComponent::width, SampleQualityComponent::height);
         addAndMakeVisible(&sampleQualityComponent);
 		
-		// see note in header about being reactive to parameter changes
-		for (ParameterEditor* ed : parameterEditors) {
-			for (Component* c : ed->getChildren()) {
-				if (Label* label = dynamic_cast<Label*>(c)) {
-					label->addListener(this);
-				} else if (ToggleButton* button = dynamic_cast<ToggleButton*>(c)) {
-					button->addListener(this);
-				}
-
-			}
-		}
 		
 	}
 
 
-	void DataThreadPluginEditor::labelTextChanged(Label* src) {
-		// see note in header about being reactive to parameter changes
-		asyncUpdateSignalChain.triggerAsyncUpdate();
-	}
-
-	void DataThreadPluginEditor::buttonClicked(Button* src) {
-		// see note in header about being reactive to parameter changes
-		asyncUpdateSignalChain.triggerAsyncUpdate();
-	}
-
 	DataThreadPluginEditor::~DataThreadPluginEditor() {
-		// see note in header about being reactive to parameter changes		
-		for (ParameterEditor* ed : parameterEditors) {
-			for (Component* c : ed->getChildren()) {
-				if (Label* label = dynamic_cast<Label*>(c)) {
-					label->removeListener(this);
-				} else if (ToggleButton* button = dynamic_cast<ToggleButton*>(c)) {
-					button->removeListener(this);
-				}
-			}
-		}
+
 	}
 
 
     SampleQualityComponent::SampleQualityComponent(QualityInfo& qualityInfo_):
         qualityInfo(qualityInfo_) {
             startTimer(5);
-    };
+    }
 
     void SampleQualityComponent::timerCallback(){
          repaint();
