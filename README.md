@@ -50,6 +50,6 @@ CMAKE_C_COMPILER=clang CMAKE_CXX_COMPILER=clang cmake -G "Xcode" ..
 GUI_BASE_DIR=../main-gui CMAKE_C_COMPILER=clang CMAKE_CXX_COMPILER=clang cmake -G "Xcode" .
 
 # and then to actually build
-cmake --build . --config Release -- -arch x86_64 &&
-cp -R Release/open-ephys-plugin-bonsai.bundle /Users/<YOUR_MAC_USER_NAME_HERE>/Library/Application\ Support/open-ephys/plugins-api8/ 
+cmake --build . --config Release &&
+cp -R Release/open-ephys-plugin-bonsai.bundle /Users/<YOUR_MAC_USER_NAME_HERE>/Library/Application\ Support/open-ephys/plugins-api10/ 
 ```

@@ -63,9 +63,11 @@ namespace Bonsai {
         constexpr int nSeconds = QualityInfo::bufferSeconds;
         constexpr int colWidth = (width - margin * 2) / nSeconds;
 
-        RectangleList<int> rectsGreen{};
-        RectangleList<int> rectsRed{};
-        RectangleList<int> rectsWhite{};
+        // int would make more sense, but seems buggy rendering on windows (as of OE 1.0 at least)
+        // https://forum.juce.com/t/int-vs-float-rectangles-with-scaling-a-proposal-for-windows-macos-consistency-for-juce-8/60744/8
+        RectangleList<float> rectsGreen{};
+        RectangleList<float> rectsRed{};
+        RectangleList<float> rectsWhite{};
 
         {
             const ScopedLock sl(qualityInfo.lock); // when reading from qualityInfo, need to lock it
@@ -86,14 +88,14 @@ namespace Bonsai {
                     auto v = qualityInfo.buffer[i];
 
 
-                    Rectangle<int> rect{
-                        margin + (block == currentBlock ? nSeconds -1 : (nSeconds -1 + block - currentBlock) % nSeconds) * colWidth,
-                        height - margin - (row + 1) * cellHeight,
-                        colWidth,
-                        cellHeight};
+                    Rectangle<float> rect{
+                        static_cast<float>(margin + (block == currentBlock ? nSeconds -1 : (nSeconds -1 + block - currentBlock) % nSeconds) * colWidth),
+                        static_cast<float>(height - margin - (row + 1) * cellHeight),
+                        static_cast<float>(colWidth),
+                        static_cast<float>(cellHeight)};
 
                     if(v.dropped_super_early){
-                        Rectangle<int> rect2 = rect;
+                        Rectangle<float> rect2 = rect;
                         rect2.setWidth(1);
                         rectsRed.addWithoutMerging(rect2);
                     }
